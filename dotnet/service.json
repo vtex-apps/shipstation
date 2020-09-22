@@ -1,0 +1,26 @@
+{
+  "stack": "dotnet",
+  "memory": 256,
+  "runtimeArgs": [
+  ],
+  "routes": {
+    "processNotification": {
+      "path": "/ship-station/hook-notification",
+      "public": true
+    },
+    "createHook": {
+      "path": "/ship-station/create-hook",
+      "public": true
+    },
+    "printHeaders": {
+      "path": "/ship-station/print-headers",
+      "public": true
+    }
+  },
+  "events": {
+    "onAppsLinked": {
+      "sender": "apps",
+      "keys": ["linked"]
+    }
+  }
+}
