@@ -42,16 +42,18 @@ namespace ShipStation.Services
                 $"{this._environmentVariableProvider.ApplicationVendor}.{this._environmentVariableProvider.ApplicationName}";
         }
 
+        private double ToDollar(long asPennies)
+        {
+            return (double)asPennies / 100;
+        }
+
         private async Task<string> GetShipStationOrderStatus(string orderStatus)
         {
             string status = ShipStationConstants.ShipStationOrderStatus.OnHold;
             switch(orderStatus)
             {
-                case ShipStationConstants.VtexOrderStatus.ApprovePayment:
-                case ShipStationConstants.VtexOrderStatus.AuthorizeFullfilment:
                 case ShipStationConstants.VtexOrderStatus.Handling:
                 case ShipStationConstants.VtexOrderStatus.Invoiced:
-                case ShipStationConstants.VtexOrderStatus.PaymentApproved:
                 case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
                 case ShipStationConstants.VtexOrderStatus.StartHanding:
                     status = ShipStationConstants.ShipStationOrderStatus.AwaitingShipment;
@@ -60,7 +62,10 @@ namespace ShipStation.Services
                 case ShipStationConstants.VtexOrderStatus.Canceled:
                     status = ShipStationConstants.ShipStationOrderStatus.Canceled;
                     break;
+                case ShipStationConstants.VtexOrderStatus.ApprovePayment:
+                case ShipStationConstants.VtexOrderStatus.AuthorizeFullfilment:
                 case ShipStationConstants.VtexOrderStatus.CancellationRequested:
+                case ShipStationConstants.VtexOrderStatus.PaymentApproved:
                 case ShipStationConstants.VtexOrderStatus.RequestCancel:
                 case ShipStationConstants.VtexOrderStatus.WaitingForOrderAuthorization:
                 case ShipStationConstants.VtexOrderStatus.WaitingForSellerDecision:
@@ -138,88 +143,110 @@ namespace ShipStation.Services
 
         public async Task<bool> CreateUpdateOrder(VtexOrder vtexOrder)
         {
-            CreateUpdateOrderRequest createUpdateOrderRequest = new CreateUpdateOrderRequest
+            CreateUpdateOrderRequest createUpdateOrderRequest = new CreateUpdateOrderRequest();
+            createUpdateOrderRequest.AdvancedOptions = new AdvancedOptions
             {
-                AdvancedOptions = new AdvancedOptions
-                {
 
-                },
-                AmountPaid = vtexOrder.Totals.Sum(t => t.Value),
-                ShippingAmount = 0,
-                TaxAmount = 0,
-                BillTo = new ToAddress
-                {
-                    City = vtexOrder.ShippingData.Address.City,
-                    Company = null,
-                    Country = vtexOrder.ShippingData.Address.Country,
-                    Name = vtexOrder.ShippingData.Address.ReceiverName,
-                    Phone = vtexOrder.ClientProfileData.Phone,
-                    PostalCode = vtexOrder.ShippingData.Address.PostalCode,
-                    Residential = null,
-                    State = vtexOrder.ShippingData.Address.State,
-                    Street1 = vtexOrder.ShippingData.Address.Street,
-                    Street2 = vtexOrder.ShippingData.Address.Number.ToString(),
-                    Street3 = vtexOrder.ShippingData.Address.Neighborhood
-                },
-                CarrierCode = null,
-                Confirmation = ShipStationConstants.ShipStationConfirmation.None,
-                CustomerEmail = vtexOrder.ClientProfileData.Email,
-                CustomerId = null,
-                CustomerNotes = null,
-                CustomerUsername = null,
-                Dimensions = new Dimensions
-                {
+            };
+            createUpdateOrderRequest.AmountPaid = ToDollar(vtexOrder.Totals.Sum(t => t.Value));
+            createUpdateOrderRequest.ShippingAmount = 0;
+            createUpdateOrderRequest.TaxAmount = 0;
+            createUpdateOrderRequest.BillTo = new ToAddress
+            {
+                City = vtexOrder.ShippingData.Address.City,
+                Company = null,
+                Country = vtexOrder.ShippingData.Address.Country.Substring(0, 2),
+                Name = vtexOrder.ShippingData.Address.ReceiverName,
+                Phone = vtexOrder.ClientProfileData.Phone,
+                PostalCode = vtexOrder.ShippingData.Address.PostalCode,
+                Residential = null,
+                State = vtexOrder.ShippingData.Address.State,
+                Street1 = vtexOrder.ShippingData.Address.Street,
+                //Street2 = vtexOrder.ShippingData.Address.Number.ToString(),
+                //Street3 = vtexOrder.ShippingData.Address.Neighborhood
+            };
+            createUpdateOrderRequest.CarrierCode = null;
+            createUpdateOrderRequest.Confirmation = ShipStationConstants.ShipStationConfirmation.None;
+            createUpdateOrderRequest.CustomerEmail = vtexOrder.ClientProfileData.Email;
+            createUpdateOrderRequest.CustomerId = null;
+            createUpdateOrderRequest.CustomerNotes = null;
+            createUpdateOrderRequest.CustomerUsername = null;
+            createUpdateOrderRequest.Dimensions = new Dimensions
+            {
 
-                },
-                Gift = null,
-                GiftMessage = null,
-                InsuranceOptions = new InsuranceOptions
-                {
+            };
+            createUpdateOrderRequest.Gift = null;
+            createUpdateOrderRequest.GiftMessage = null;
+            createUpdateOrderRequest.InsuranceOptions = new InsuranceOptions
+            {
 
-                },
-                InternalNotes = null,
-                InternationalOptions = new InternationalOptions
-                {
+            };
+            createUpdateOrderRequest.InternalNotes = null;
+            createUpdateOrderRequest.InternationalOptions = new InternationalOptions
+            {
 
-                },
-                Items = new List<OrderItem>
-                {
+            };
 
-                },
-                OrderDate = vtexOrder.CreationDate,
-                OrderKey = vtexOrder.OrderFormId,
-                OrderNumber = vtexOrder.Sequence,
-                OrderStatus = await this.GetShipStationOrderStatus(vtexOrder.State),
-                PackageCode = null,
-                PaymentDate = null, // ReceiptCollection?
-                PaymentMethod = null, // paymentData?
-                RequestedShippingService = null, // logisticsInfo
-                ServiceCode = null,
-                ShipByDate = null,
-                ShipDate = null,
-                ShipTo = new ToAddress
-                {
-                    City = vtexOrder.ShippingData.Address.City,
-                    Company = null,
-                    Country = vtexOrder.ShippingData.Address.Country,
-                    Name = vtexOrder.ShippingData.Address.ReceiverName,
-                    Phone = vtexOrder.ClientProfileData.Phone,
-                    PostalCode = vtexOrder.ShippingData.Address.PostalCode,
-                    Residential = null,
-                    State = vtexOrder.ShippingData.Address.State,
-                    Street1 = vtexOrder.ShippingData.Address.Street,
-                    Street2 = vtexOrder.ShippingData.Address.Number.ToString(),
-                    Street3 = vtexOrder.ShippingData.Address.Neighborhood
-                },
-                TagIds = new List<long>(),
-                Weight = new Weight
-                {
+            createUpdateOrderRequest.Items = new List<OrderItem>();
+            foreach (VtexOrderItem item in vtexOrder.Items)
+            {
+                OrderItem orderItem = new OrderItem();
+                orderItem.Adjustment = false;
+                orderItem.FulfillmentSku = item.SellerSku;
+                orderItem.ImageUrl = item.ImageUrl;
+                orderItem.LineItemKey = item.Id;
+                orderItem.Name = item.Name;
+                orderItem.Options = new List<Option>();
+                orderItem.ProductId = item.ProductId;
+                orderItem.Quantity = item.Quantity;
+                orderItem.ShippingAmount = null;
+                orderItem.Sku = item.SellerSku;
+                orderItem.TaxAmount = null;
+                orderItem.UnitPrice = ToDollar(item.ListPrice);
+                orderItem.Upc = null;
+                orderItem.WarehouseLocation = null;
+                orderItem.Weight = null;
 
-                }
+                createUpdateOrderRequest.Items.Add(orderItem);
+            }
+
+            createUpdateOrderRequest.OrderDate = vtexOrder.CreationDate;
+            createUpdateOrderRequest.OrderKey = vtexOrder.OrderFormId;
+            createUpdateOrderRequest.OrderNumber = vtexOrder.Sequence;
+            createUpdateOrderRequest.OrderStatus = await this.GetShipStationOrderStatus(vtexOrder.State);
+            createUpdateOrderRequest.PackageCode = null;
+            createUpdateOrderRequest.PaymentDate = null; // ReceiptCollection?
+            createUpdateOrderRequest.PaymentMethod = null; // paymentData?
+            createUpdateOrderRequest.RequestedShippingService = null; // logisticsInfo
+            createUpdateOrderRequest.ServiceCode = null;
+            createUpdateOrderRequest.ShipByDate = null;
+            createUpdateOrderRequest.ShipDate = null;
+            createUpdateOrderRequest.ShipTo = new ToAddress
+            {
+                City = vtexOrder.ShippingData.Address.City,
+                Company = null,
+                Country = vtexOrder.ShippingData.Address.Country.Substring(0,2),
+                Name = vtexOrder.ShippingData.Address.ReceiverName,
+                Phone = vtexOrder.ClientProfileData.Phone,
+                PostalCode = vtexOrder.ShippingData.Address.PostalCode,
+                Residential = null,
+                State = vtexOrder.ShippingData.Address.State,
+                Street1 = vtexOrder.ShippingData.Address.Street,
+                //Street2 = vtexOrder.ShippingData.Address.Number.ToString(),
+                //Street3 = vtexOrder.ShippingData.Address.Neighborhood
+            };
+            createUpdateOrderRequest.TagIds = new List<long>();
+            createUpdateOrderRequest.Weight = new Weight
+            {
+
             };
 
             string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.ORDERS}/{ShipStationConstants.API.CREATE_ORDER}";
             ResponseWrapper responseWrapper = await this.SendRequest(url, createUpdateOrderRequest);
+            Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+
+            _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.State}'='{createUpdateOrderRequest.OrderStatus}'" );
+
             return responseWrapper.IsSuccess;
         }
     }

@@ -226,24 +226,28 @@ namespace ShipStation.Services
 
         public async Task<bool> ProcessNotification(HookNotification hookNotification)
         {
-            bool success = false;
+            bool success = true;
 
             switch (hookNotification.Domain)
             {
                 case ShipStationConstants.Domain.Fulfillment:
-                    switch (hookNotification.State)
-                    {
-                        case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
-                            VtexOrder vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
-                            success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
-                            break;
-                        default:
-                            Console.WriteLine($"State {hookNotification.State} not implemeted.");
-                            _context.Vtex.Logger.Info("ProcessNotification", null, $"State {hookNotification.State} not implemeted.");
-                            break;
-                    }
-                    break;
+                    VtexOrder vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
+                    success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                    //switch (hookNotification.State)
+                    //{
+                    //    case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
+                    //        VtexOrder vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
+                    //        success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                    //        break;
+                    //    default:
+                    //        Console.WriteLine($"State {hookNotification.State} not implemeted.");
+                    //        _context.Vtex.Logger.Info("ProcessNotification", null, $"State {hookNotification.State} not implemeted.");
+                    //        break;
+                    //}
+                break;
                 case ShipStationConstants.Domain.Marketplace:
+                    Console.WriteLine($"Marketplace not implemeted.");
+                    _context.Vtex.Logger.Info("ProcessNotification", null, $"Marketplace not implemeted.");
                     break;
                 default:
                     Console.WriteLine($"Domain {hookNotification.Domain} not implemeted.");
