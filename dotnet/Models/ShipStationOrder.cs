@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ShipStation.Models
 {
-    public class CreateUpdateOrderRequest
+    public class ShipStationOrder
     {
         /// <summary>
         /// A user-defined order number used to identify an order.

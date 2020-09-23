@@ -10,6 +10,7 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using Vtex.Api.Context;
+    using System.Web;
 
     public class RoutesController : Controller
     {
@@ -32,10 +33,62 @@
 
         public async Task<IActionResult> CreateHook()
         {
+            Console.WriteLine("--> CreateHook <--");
             bool createOrUpdateHookResponse = await this._vtexAPIService.CreateOrUpdateHook();
             Response.Headers.Add("Cache-Control", "private");
 
             return Json(createOrUpdateHookResponse);
+        }
+
+        public async Task<IActionResult> CreateWebHook(string hookEvent)
+        {
+            Console.WriteLine($"--> CreateWebHook '{hookEvent}' <--");
+            string response = await _shipStationAPIService.SubscribeToWebhook(hookEvent);
+            Response.Headers.Add("Cache-Control", "private");
+
+            return Json(response);
+        }
+
+        public async Task<IActionResult> WebHookNotification(string hookEvent)
+        {
+            Console.WriteLine($"--> WebHookNotification '{hookEvent}' <--");
+            ActionResult status = BadRequest();
+            if ("post".Equals(HttpContext.Request.Method, StringComparison.OrdinalIgnoreCase))
+            {
+                string bodyAsText = await new System.IO.StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+                Console.WriteLine($"[Web Hook Notification] : '{bodyAsText}'");
+                _context.Vtex.Logger.Info("WebHookNotification", hookEvent, bodyAsText);
+                WebhookNotification webhookNotification = JsonConvert.DeserializeObject<WebhookNotification>(bodyAsText);
+                string resource = await _shipStationAPIService.ProcessResourceUrl(webhookNotification.ResourceUrl);
+                Console.WriteLine($"--> RESOURCE {resource} <--");
+                switch(hookEvent)
+                {
+                    case ShipStationConstants.WebhookEvent.ITEM_ORDER_NOTIFY:
+                    case ShipStationConstants.WebhookEvent.ORDER_NOTIFY:
+                        ListOrdersResponse ordersResponse = JsonConvert.DeserializeObject<ListOrdersResponse>(resource);
+                        break;
+                    case ShipStationConstants.WebhookEvent.ITEM_SHIP_NOTIFY:
+                    case ShipStationConstants.WebhookEvent.SHIP_NOTIFY:
+                        ListShipmentsResponse shipmentsResponse = JsonConvert.DeserializeObject<ListShipmentsResponse>(resource);
+                        break;
+                }
+
+                status = Ok();
+            }
+
+            Response.Headers.Add("Cache-Control", "private");
+
+            return Json(status);
+        }
+
+        public async Task<IActionResult> ProcessResourceUrl(string url)
+        {
+            url = HttpUtility.UrlDecode(url);
+            Console.WriteLine($"--> ProcessResourceUrl '{url}' <--");
+            string response = await _shipStationAPIService.ProcessResourceUrl(url);
+            Response.Headers.Add("Cache-Control", "private");
+
+            return Json(response);
         }
 
         public async Task<IActionResult> ProcessNotification()

@@ -12,6 +12,18 @@
       "path": "/ship-station/create-hook",
       "public": true
     },
+    "createWebHook": {
+      "path": "/ship-station/create-web-hook/:hookEvent",
+      "public": true
+    },
+    "webHookNotification": {
+      "path": "/ship-station/web-hook-notification/:hookEvent",
+      "public": true
+    },
+    "processResourceUrl": {
+      "path": "/ship-station/process-resource-url/:url",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

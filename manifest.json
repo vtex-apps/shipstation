@@ -95,6 +95,13 @@
         "path": "/*"
       }
     },
+	{
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi12.shipstation.com",
+        "path": "shipments"
+      }
+    },
     {
       "name": "vbase-read-write"
     }

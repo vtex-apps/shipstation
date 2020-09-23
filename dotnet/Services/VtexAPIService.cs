@@ -257,5 +257,35 @@ namespace ShipStation.Services
 
             return success;
         }
+
+        /// <summary>
+        /// https://{accountName}.{environment}.com.br/api/oms/pvt/orders/orderId/invoice
+        /// </summary>
+        /// <param name="shopperId"></param>
+        /// <returns></returns>
+        public async Task<OrderInvoiceNotificationResponse> OrderInvoiceNotification(string orderId, OrderInvoiceNotificationRequest orderInvoice)
+        {
+            string jsonSerializedInvoice = JsonConvert.SerializeObject(orderInvoice);
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"https://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexinternal.com.br/api/oms/pvt/orders/{orderId}/invoice"),
+                Content = new StringContent(jsonSerializedInvoice, Encoding.UTF8, ShipStationConstants.APPLICATION_JSON)
+            };
+
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            OrderInvoiceNotificationResponse orderInvoiceNotificationResponse = JsonConvert.DeserializeObject<OrderInvoiceNotificationResponse>(responseContent);
+
+            return orderInvoiceNotificationResponse;
+        }
     }
 }

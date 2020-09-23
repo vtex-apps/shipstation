@@ -30,12 +30,17 @@ namespace ShipStation.Data
         public const string HTTP_FORWARDED_HEADER = "HTTP_X_FORWARDED_FOR";
         public const string BUCKET = "ship-station";
         public const string HOOK_PING = "ping";
+        public const string WEB_HOOK_NOTIFICATION = "web-hook-notification";
 
         public class API
         {
             public const string HOST = "ssapi.shipstation.com";
             public const string ORDERS = "orders";
             public const string CREATE_ORDER = "createorder";
+            public const string WEBHOOKS = "webhooks";
+            public const string SUBSCRIBE = "subscribe";
+            public const string SHIPMENTS = "shipments";
+            public const string FULFILLMENTS = "fulfillments";
         }
 
         public class VtexOrderStatus
@@ -89,6 +94,23 @@ namespace ShipStation.Data
             public const string Signature = "signature";
             public const string AdultSignature = "adult_signature";
             public const string DirectSignature = "direct_signature";
+        }
+
+        //ORDER_NOTIFY, ITEM_ORDER_NOTIFY, SHIP_NOTIFY, ITEM_SHIP_NOTIFY
+        public class WebhookEvent
+        {
+            public const string ORDER_NOTIFY = "ORDER_NOTIFY";
+            public const string ITEM_ORDER_NOTIFY = "ITEM_ORDER_NOTIFY";
+            public const string SHIP_NOTIFY = "SHIP_NOTIFY";
+            public const string ITEM_SHIP_NOTIFY = "ITEM_SHIP_NOTIFY";
+
+            public class FriendlyName
+            {
+                public const string ORDER_NOTIFY = "On New Orders";
+                public const string ITEM_ORDER_NOTIFY = "On New Items";
+                public const string SHIP_NOTIFY = "On Orders Shipped";
+                public const string ITEM_SHIP_NOTIFY = "On Items Shipped";
+            }
         }
     }
 }
