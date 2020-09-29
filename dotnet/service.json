@@ -24,6 +24,18 @@
       "path": "/ship-station/process-resource-url/:url",
       "public": true
     },
+    "synchVtexOrder": {
+      "path": "/ship-station/synch-vtex-order/:orderId",
+      "public": true
+    },
+    "orderInvoiceNotification": {
+      "path": "/ship-station/order-invoice-notification/:orderId",
+      "public": true
+    },
+    "setOrderStatus": {
+      "path": "/ship-station/set-order-status/:orderId/:orderStatus",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

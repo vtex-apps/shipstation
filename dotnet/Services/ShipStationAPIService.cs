@@ -56,6 +56,7 @@ namespace ShipStation.Services
                 case ShipStationConstants.VtexOrderStatus.Invoiced:
                 case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
                 case ShipStationConstants.VtexOrderStatus.StartHanding:
+                case ShipStationConstants.VtexOrderStatus.PaymentApproved:
                     status = ShipStationConstants.ShipStationOrderStatus.AwaitingShipment;
                     break;
                 case ShipStationConstants.VtexOrderStatus.Cancel:
@@ -65,7 +66,6 @@ namespace ShipStation.Services
                 case ShipStationConstants.VtexOrderStatus.ApprovePayment:
                 case ShipStationConstants.VtexOrderStatus.AuthorizeFullfilment:
                 case ShipStationConstants.VtexOrderStatus.CancellationRequested:
-                case ShipStationConstants.VtexOrderStatus.PaymentApproved:
                 case ShipStationConstants.VtexOrderStatus.RequestCancel:
                 case ShipStationConstants.VtexOrderStatus.WaitingForOrderAuthorization:
                 case ShipStationConstants.VtexOrderStatus.WaitingForSellerDecision:
@@ -89,6 +89,8 @@ namespace ShipStation.Services
                 case ShipStationConstants.VtexOrderStatus.Replaced:
                     break;
             }
+
+            Console.WriteLine($"-----> Vtex status = '{orderStatus}' ShipStation Status = '{status}' <-----");
 
             return status;
         }
@@ -127,6 +129,8 @@ namespace ShipStation.Services
                     IsSuccess = responseMessage.IsSuccessStatusCode,
                     ResponseText = responseContent
                 };
+
+                //Console.WriteLine($"SendRequest [{responseMessage.StatusCode}] {responseContent}");
             }
             catch (Exception ex)
             {
@@ -188,14 +192,27 @@ namespace ShipStation.Services
 
         public async Task<bool> CreateUpdateOrder(VtexOrder vtexOrder)
         {
+            MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            string courierName = string.Empty;
+            string warehouseId = string.Empty;
+            List<LogisticsInfo> shippedItems = vtexOrder.ShippingData.LogisticsInfo.Where(i => i.Slas.Any(s => !s.PickupStoreInfo.IsPickupStore)).ToList();
+            foreach (LogisticsInfo logisticsInfo in shippedItems)
+            {
+                string selectedSla = logisticsInfo.SelectedSla;
+                Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(selectedSla)).FirstOrDefault();
+                courierName = sla.DeliveryIds.Select(s => s.CourierName).FirstOrDefault();
+                warehouseId = sla.DeliveryIds.Select(s => s.WarehouseId).FirstOrDefault();
+            }
+
             ShipStationOrder createUpdateOrderRequest = new ShipStationOrder();
             createUpdateOrderRequest.AdvancedOptions = new AdvancedOptions
             {
 
             };
+
             createUpdateOrderRequest.AmountPaid = ToDollar(vtexOrder.Totals.Sum(t => t.Value));
-            createUpdateOrderRequest.ShippingAmount = 0;
-            createUpdateOrderRequest.TaxAmount = 0;
+            createUpdateOrderRequest.ShippingAmount = vtexOrder.Totals.Where(t => t.Name == "Shipping").Select(d => d.Value).FirstOrDefault();
+            createUpdateOrderRequest.TaxAmount = vtexOrder.Totals.Where(t => t.Name == "Tax").Select(d => d.Value).FirstOrDefault();
             createUpdateOrderRequest.BillTo = new ToAddress
             {
                 City = vtexOrder.ShippingData.Address.City,
@@ -210,6 +227,7 @@ namespace ShipStation.Services
                 //Street2 = vtexOrder.ShippingData.Address.Number.ToString(),
                 //Street3 = vtexOrder.ShippingData.Address.Neighborhood
             };
+
             createUpdateOrderRequest.CarrierCode = null;
             createUpdateOrderRequest.Confirmation = ShipStationConstants.ShipStationConfirmation.None;
             createUpdateOrderRequest.CustomerEmail = vtexOrder.ClientProfileData.Email;
@@ -220,12 +238,14 @@ namespace ShipStation.Services
             {
 
             };
+
             createUpdateOrderRequest.Gift = null;
             createUpdateOrderRequest.GiftMessage = null;
             createUpdateOrderRequest.InsuranceOptions = new InsuranceOptions
             {
 
             };
+
             createUpdateOrderRequest.InternalNotes = null;
             createUpdateOrderRequest.InternationalOptions = new InternationalOptions
             {
@@ -246,17 +266,21 @@ namespace ShipStation.Services
                 orderItem.Quantity = item.Quantity;
                 orderItem.ShippingAmount = null;
                 orderItem.Sku = item.SellerSku;
-                orderItem.TaxAmount = null;
+                orderItem.TaxAmount = ToDollar(item.Tax);
                 orderItem.UnitPrice = ToDollar(item.ListPrice);
                 orderItem.Upc = null;
                 orderItem.WarehouseLocation = null;
-                orderItem.Weight = null;
+                orderItem.Weight = new Weight
+                {
+                    Units = merchantSettings.WeightUnit,
+                    Value = item.AdditionalInfo.Dimension.Weight
+                };
 
                 createUpdateOrderRequest.Items.Add(orderItem);
             }
 
             createUpdateOrderRequest.OrderDate = vtexOrder.CreationDate;
-            createUpdateOrderRequest.OrderKey = vtexOrder.OrderFormId;
+            createUpdateOrderRequest.OrderKey = vtexOrder.OrderId;
             createUpdateOrderRequest.OrderNumber = vtexOrder.Sequence;
             createUpdateOrderRequest.OrderStatus = await this.GetShipStationOrderStatus(vtexOrder.State);
             createUpdateOrderRequest.PackageCode = null;
@@ -280,6 +304,7 @@ namespace ShipStation.Services
                 //Street2 = vtexOrder.ShippingData.Address.Number.ToString(),
                 //Street3 = vtexOrder.ShippingData.Address.Neighborhood
             };
+
             createUpdateOrderRequest.TagIds = new List<long>();
             createUpdateOrderRequest.Weight = new Weight
             {
@@ -288,7 +313,9 @@ namespace ShipStation.Services
 
             string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.ORDERS}/{ShipStationConstants.API.CREATE_ORDER}";
             ResponseWrapper responseWrapper = await this.SendRequest(url, createUpdateOrderRequest);
-            Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
+            //Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
 
             _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.State}'='{createUpdateOrderRequest.OrderStatus}'" );
 

@@ -47,7 +47,7 @@ namespace ShipStation.Models
         public string CallCenterOperator { get; set; }
 
         [JsonProperty("userProfileId")]
-        public Guid UserProfileId { get; set; }
+        public string UserProfileId { get; set; }
 
         [JsonProperty("hostName")]
         public string HostName { get; set; }

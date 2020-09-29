@@ -112,5 +112,18 @@ namespace ShipStation.Data
                 public const string ITEM_SHIP_NOTIFY = "On Items Shipped";
             }
         }
+
+        public class InvoiceType
+        {
+            /// <summary>
+            /// The Output type should be used when the invoice you are sending is a selling invoice.
+            /// </summary>
+            public const string OUTPUT = "Output";
+
+            /// <summary>
+            /// The Input type should be used when you send a return invoice.
+            /// </summary>
+            public const string INPUT = "Input";
+        }
     }
 }

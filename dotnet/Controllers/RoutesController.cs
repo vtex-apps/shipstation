@@ -70,6 +70,7 @@
                     case ShipStationConstants.WebhookEvent.ITEM_SHIP_NOTIFY:
                     case ShipStationConstants.WebhookEvent.SHIP_NOTIFY:
                         ListShipmentsResponse shipmentsResponse = JsonConvert.DeserializeObject<ListShipmentsResponse>(resource);
+                        bool proccessed = await _vtexAPIService.ProcessShipNotification(shipmentsResponse);
                         break;
                 }
 
@@ -121,6 +122,41 @@
 
             Console.WriteLine($"[Process Notification] : '{success}'");
             return status;
+        }
+
+        public async Task<IActionResult> SynchVtexOrder(string orderId)
+        {
+            VtexOrder vtexOrder = await _vtexAPIService.GetOrderInformation(orderId);
+            bool success = await _shipStationAPIService.CreateUpdateOrder(vtexOrder);
+            Response.Headers.Add("Cache-Control", "private");
+
+            return Json(success);
+        }
+
+        public async Task<IActionResult> OrderInvoiceNotification(string orderId)
+        {
+            OrderInvoiceNotificationRequest request = new OrderInvoiceNotificationRequest
+            {
+                Courier = "UPS",
+                InvoiceNumber = "inv-01",
+                InvoiceValue = 30.95,
+                Items = new System.Collections.Generic.List<InvoiceItem> { new InvoiceItem { Id = "003", Price = 20.50, Quantity = 1} },
+                TrackingNumber = "1Z11111",
+                Type = ShipStationConstants.InvoiceType.OUTPUT
+            };
+
+            OrderInvoiceNotificationResponse response = await _vtexAPIService.OrderInvoiceNotification(orderId, request);
+            Response.Headers.Add("Cache-Control", "private");
+
+            return Json(response);
+        }
+
+        public async Task<IActionResult> SetOrderStatus(string orderId, string orderStatus)
+        {
+            bool success = await _vtexAPIService.SetOrderStatus(orderId, orderStatus);
+            Response.Headers.Add("Cache-Control", "private");
+
+            return Json(success);
         }
 
         public string PrintHeaders()
