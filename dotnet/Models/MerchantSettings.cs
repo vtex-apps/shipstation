@@ -10,7 +10,7 @@ namespace ShipStation.Models
         public string ApiSecret { get; set; }
         public string AppKey { get; set; }
         public string AppToken { get; set; }
-
         public string WeightUnit { get; set; }
+        public bool SplitShipmentByLocation { get; set; }
     }
 }

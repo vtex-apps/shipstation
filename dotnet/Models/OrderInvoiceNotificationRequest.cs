@@ -29,7 +29,7 @@ namespace ShipStation.Models
         public string IssuanceDate { get; set; }
 
         [JsonProperty("invoiceValue")]
-        public double InvoiceValue { get; set; }
+        public long InvoiceValue { get; set; }
     }
 
     public class InvoiceItem
@@ -41,6 +41,6 @@ namespace ShipStation.Models
         public long Quantity { get; set; }
 
         [JsonProperty("price")]
-        public double Price { get; set; }
+        public long Price { get; set; }
     }
 }

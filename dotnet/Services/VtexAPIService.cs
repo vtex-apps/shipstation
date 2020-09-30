@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Vtex.Api.Context;
+using System.Linq;
 
 namespace ShipStation.Services
 {
@@ -113,9 +114,9 @@ namespace ShipStation.Services
                 request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
             }
 
-            MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
-            request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
-            request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
 
             var client = _clientFactory.CreateClient();
             var response = await client.SendAsync(request);
@@ -170,9 +171,9 @@ namespace ShipStation.Services
                 request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
             }
 
-            MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
-            request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
-            request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
 
             var client = _clientFactory.CreateClient();
             var response = await client.SendAsync(request);
@@ -251,6 +252,7 @@ namespace ShipStation.Services
         public async Task<bool> ProcessNotification(HookNotification hookNotification)
         {
             bool success = true;
+            VtexOrder vtexOrder = null;
 
             switch (hookNotification.Domain)
             {
@@ -260,6 +262,13 @@ namespace ShipStation.Services
                     switch (hookNotification.State)
                     {
                         case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
+                            vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
+                            success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                            if(success)
+                            {
+                                success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                            }
+                            break;
                         //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
                         case ShipStationConstants.VtexOrderStatus.Cancel:
                         //case ShipStationConstants.VtexOrderStatus.Handling:
@@ -268,7 +277,7 @@ namespace ShipStation.Services
                         case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
                         case ShipStationConstants.VtexOrderStatus.OrderCreated:
                         case ShipStationConstants.VtexOrderStatus.PaymentPending:
-                            VtexOrder vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
+                            vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
                             success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
                             break;
                         default:
@@ -302,11 +311,12 @@ namespace ShipStation.Services
         /// <returns>OrderInvoiceNotificationResponse</returns>
         public async Task<OrderInvoiceNotificationResponse> OrderInvoiceNotification(string orderId, OrderInvoiceNotificationRequest orderInvoice)
         {
+            OrderInvoiceNotificationResponse orderInvoiceNotificationResponse = null;
             string jsonSerializedInvoice = JsonConvert.SerializeObject(orderInvoice);
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexinternal.com.br/api/oms/pvt/orders/{orderId}/invoice"),
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/oms/pvt/orders/{orderId}/invoice"), // RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexinternal.com.br/api/oms/pvt/orders/{orderId}/invoice"),
                 Content = new StringContent(jsonSerializedInvoice, Encoding.UTF8, ShipStationConstants.APPLICATION_JSON)
             };
 
@@ -319,17 +329,19 @@ namespace ShipStation.Services
                 request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
             }
 
-            MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
-            request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
-            request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
 
             var client = _clientFactory.CreateClient();
             var response = await client.SendAsync(request);
             string responseContent = await response.Content.ReadAsStringAsync();
 
             Console.WriteLine($"OrderInvoiceNotification [{response.StatusCode}] {responseContent}");
-
-            OrderInvoiceNotificationResponse orderInvoiceNotificationResponse = JsonConvert.DeserializeObject<OrderInvoiceNotificationResponse>(responseContent);
+            if (response.IsSuccessStatusCode)
+            {
+                orderInvoiceNotificationResponse = JsonConvert.DeserializeObject<OrderInvoiceNotificationResponse>(responseContent);
+            }
 
             return orderInvoiceNotificationResponse;
         }
@@ -340,7 +352,7 @@ namespace ShipStation.Services
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexinternal.com.br/api/oms/pvt/orders/{orderId}/{orderStatus}")
+                RequestUri = new Uri($"https://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/oms/pvt/orders/{orderId}/{orderStatus}")
             };
 
             request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
@@ -372,21 +384,136 @@ namespace ShipStation.Services
 
             foreach(Shipment shipment in shipmentsResponse.Shipments)
             {
-                Console.WriteLine($"Processing Shipment for Order#{shipment.OrderNumber} [{shipment.CarrierCode}] {shipment.TrackingNumber}");
-                sb.AppendLine($"Processing Shipment for Order#{shipment.OrderNumber} [{shipment.CarrierCode}] {shipment.TrackingNumber}");
+                string orderId = shipment.OrderNumber;
+                Console.WriteLine($"Processing Shipment for Order#{orderId} [{shipment.CarrierCode}] {shipment.TrackingNumber}");
+                sb.AppendLine($"Processing Shipment for Order#{orderId} [{shipment.CarrierCode}] {shipment.TrackingNumber}");
                 if (shipment.ShipmentItems != null)
                 {
+                    VtexOrder vtexOrder = await this.GetOrderInformation(orderId);
+                    long orderTotal = vtexOrder.Totals.Sum(t => t.Value);
+                    long shippingTotal = vtexOrder.Totals.Where(t => t.Name == "Shipping").Select(d => d.Value).FirstOrDefault();
+                    long taxTotal = vtexOrder.Totals.Where(t => t.Name == "Tax").Select(d => d.Value).FirstOrDefault();
+
+                    OrderInvoiceNotificationRequest request = new OrderInvoiceNotificationRequest
+                    {
+                        Courier = shipment.CarrierCode,
+                        TrackingNumber = shipment.TrackingNumber,
+                        Type = ShipStationConstants.InvoiceType.OUTPUT,
+                        InvoiceNumber = shipment.ShipmentId.ToString(),
+                        InvoiceValue = 0,
+                        IssuanceDate = shipment.ShipDate.ToString(),
+                        Items = new List<InvoiceItem>(),
+                        TrackingUrl = null
+                    };
+
                     foreach (ShipmentItem shipmentItem in shipment.ShipmentItems)
                     {
-                        Console.WriteLine($"Item '{shipmentItem.Name}' {shipmentItem.Sku} ({shipmentItem.Quantity})");
-                        sb.AppendLine($"    Item '{shipmentItem.Name}' {shipmentItem.Sku} ({shipmentItem.Quantity})");
+                        string sku = shipmentItem.Sku;
+                        Console.WriteLine($"Item '{shipmentItem.Name}' {sku} ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
+                        sb.AppendLine($"    Item '{shipmentItem.Name}' {sku} ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
+
+                        LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(sku)).FirstOrDefault();
+                        Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
+
+                        long itemPrice = ToCents(shipmentItem.UnitPrice);
+                        long itemTax = sla.Tax;
+
+                        InvoiceItem invoiceItem = new InvoiceItem
+                        {
+                            Id = shipmentItem.Sku,
+                            Price = itemPrice,
+                            Quantity = shipmentItem.Quantity
+                        };
+
+                        request.Items.Add(invoiceItem);
+                        request.InvoiceValue += (itemPrice + itemTax);
+                        Console.WriteLine($"request.InvoiceValue = {request.InvoiceValue}");
                     }
+
+                    // Don't charge more than order total
+                    request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
+
+                    OrderInvoiceNotificationResponse response = await this.OrderInvoiceNotification(orderId, request);
+                    success = response != null;
                 }
             }
 
             _context.Vtex.Logger.Info("ProcessShipNotification", null, sb.ToString());
 
             return success;
+        }
+
+        public async Task<ListAllDocksResponse> ListAllDocks()
+        {
+            ListAllDocksResponse listAllDocksResponse = null;
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/logistics/pvt/configuration/docks")
+            };
+
+            request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"ListAllDocks [{response.StatusCode}] {responseContent}");
+            if (response.IsSuccessStatusCode)
+            {
+                listAllDocksResponse = JsonConvert.DeserializeObject<ListAllDocksResponse>(responseContent);
+            }
+
+            return listAllDocksResponse;
+        }
+
+        public async Task<ListAllWarehousesResponse> ListAllWarehouses()
+        {
+            ListAllWarehousesResponse listAllWarehousesResponse = null;
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/logistics/pvt/configuration/docks")
+            };
+
+            request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"ListAllDocks [{response.StatusCode}] {responseContent}");
+            if (response.IsSuccessStatusCode)
+            {
+                listAllWarehousesResponse = JsonConvert.DeserializeObject<ListAllWarehousesResponse>(responseContent);
+            }
+
+            return listAllWarehousesResponse;
+        }
+
+        private long ToCents(double asDollars)
+        {
+            return (long)asDollars * 100;
         }
     }
 }

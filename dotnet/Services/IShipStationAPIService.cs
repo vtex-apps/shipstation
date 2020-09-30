@@ -11,5 +11,6 @@ namespace ShipStation.Services
         Task<ListOrdersResponse> ListOrders(string queryPrameters);
         Task<ListShipmentsResponse> ListShipments(string queryPrameters);
         Task<ListFulfillmentsResponse> ListFulFillments(string queryPrameters);
+        Task<CreateWarehouseResponse> CreateWarehouse(CreateWarehouseRequest createWarehouseRequest);
     }
 }

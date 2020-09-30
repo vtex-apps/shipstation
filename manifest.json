@@ -18,7 +18,7 @@
         "description": "ShipStation API Secret",
         "type": "string"
       },
-      "appKey": {
+	  "appKey": {
         "title": "App Key",
         "description": "Vtex App Key",
         "type": "string"
@@ -27,6 +27,16 @@
         "title": "App Token",
         "description": "Vtex App Token",
         "type": "string"
+      },
+      "weightUnit": {
+        "title": "Weight Unit",
+        "description": "Unit of weight measure",
+        "type": "string"
+      },
+      "splitShipmentByLocation": {
+        "title": "Split Shipments",
+        "description": "Split Shipments By Location",
+        "type": "boolean"
       }
     }
   },
@@ -66,6 +76,12 @@
     },
     {
       "name": "AcessaTodosPedidos"
+    },
+    {
+      "name": "OMSViewer"
+    },
+    {
+      "name": "ShippingAction"
     },
     {
       "name": "outbound-access",

@@ -41,6 +41,8 @@ namespace ShipStation.Data
             public const string SUBSCRIBE = "subscribe";
             public const string SHIPMENTS = "shipments";
             public const string FULFILLMENTS = "fulfillments";
+            public const string WAREHOUSES = "warehouses";
+            public const string CREATRE_WAREHOUSE = "createwarehouse";
         }
 
         public class VtexOrderStatus

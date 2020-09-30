@@ -61,14 +61,15 @@
                 WebhookNotification webhookNotification = JsonConvert.DeserializeObject<WebhookNotification>(bodyAsText);
                 string resource = await _shipStationAPIService.ProcessResourceUrl(webhookNotification.ResourceUrl);
                 Console.WriteLine($"--> RESOURCE {resource} <--");
-                switch(hookEvent)
+                _context.Vtex.Logger.Info("WebHookNotification", webhookNotification.ResourceUrl, resource);
+                switch (hookEvent)
                 {
                     case ShipStationConstants.WebhookEvent.ITEM_ORDER_NOTIFY:
-                    case ShipStationConstants.WebhookEvent.ORDER_NOTIFY:
+                    //case ShipStationConstants.WebhookEvent.ORDER_NOTIFY:
                         ListOrdersResponse ordersResponse = JsonConvert.DeserializeObject<ListOrdersResponse>(resource);
                         break;
                     case ShipStationConstants.WebhookEvent.ITEM_SHIP_NOTIFY:
-                    case ShipStationConstants.WebhookEvent.SHIP_NOTIFY:
+                    //case ShipStationConstants.WebhookEvent.SHIP_NOTIFY:
                         ListShipmentsResponse shipmentsResponse = JsonConvert.DeserializeObject<ListShipmentsResponse>(resource);
                         bool proccessed = await _vtexAPIService.ProcessShipNotification(shipmentsResponse);
                         break;
@@ -139,10 +140,11 @@
             {
                 Courier = "UPS",
                 InvoiceNumber = "inv-01",
-                InvoiceValue = 30.95,
-                Items = new System.Collections.Generic.List<InvoiceItem> { new InvoiceItem { Id = "003", Price = 20.50, Quantity = 1} },
+                InvoiceValue = 3095,
+                Items = new System.Collections.Generic.List<InvoiceItem> { new InvoiceItem { Id = "003", Price = 2050, Quantity = 1} },
                 TrackingNumber = "1Z11111",
-                Type = ShipStationConstants.InvoiceType.OUTPUT
+                Type = ShipStationConstants.InvoiceType.OUTPUT,
+                IssuanceDate = DateTime.Now.ToString()
             };
 
             OrderInvoiceNotificationResponse response = await _vtexAPIService.OrderInvoiceNotification(orderId, request);
@@ -157,6 +159,12 @@
             Response.Headers.Add("Cache-Control", "private");
 
             return Json(success);
+        }
+
+        public async Task<IActionResult> ListAllDocks()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            return Json(await _vtexAPIService.ListAllDocks());
         }
 
         public string PrintHeaders()
