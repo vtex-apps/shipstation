@@ -56,11 +56,11 @@
             if ("post".Equals(HttpContext.Request.Method, StringComparison.OrdinalIgnoreCase))
             {
                 string bodyAsText = await new System.IO.StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-                Console.WriteLine($"[Web Hook Notification] : '{bodyAsText}'");
+                //Console.WriteLine($"[Web Hook Notification] : '{bodyAsText}'");
                 _context.Vtex.Logger.Info("WebHookNotification", hookEvent, bodyAsText);
                 WebhookNotification webhookNotification = JsonConvert.DeserializeObject<WebhookNotification>(bodyAsText);
                 string resource = await _shipStationAPIService.ProcessResourceUrl(webhookNotification.ResourceUrl);
-                Console.WriteLine($"--> RESOURCE {resource} <--");
+                //Console.WriteLine($"--> RESOURCE {resource} <--");
                 _context.Vtex.Logger.Info("WebHookNotification", webhookNotification.ResourceUrl, resource);
                 switch (hookEvent)
                 {
@@ -100,7 +100,7 @@
             if ("post".Equals(HttpContext.Request.Method, StringComparison.OrdinalIgnoreCase))
             {
                 string bodyAsText = await new System.IO.StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-                Console.WriteLine($"[Hook Notification] : '{bodyAsText}'");
+                //Console.WriteLine($"[Hook Notification] : '{bodyAsText}'");
                 dynamic notification = JsonConvert.DeserializeObject<dynamic>(bodyAsText);
                 if (notification != null && notification.hookConfig != null && notification.hookConfig == ShipStationConstants.HOOK_PING)
                 {
@@ -118,10 +118,10 @@
             }
             else
             {
-                Console.WriteLine($"[Hook Notification] : '{HttpContext.Request.Method}'");
+                //Console.WriteLine($"[Hook Notification] : '{HttpContext.Request.Method}'");
             }
 
-            Console.WriteLine($"[Process Notification] : '{success}'");
+            //Console.WriteLine($"[Process Notification] : '{success}'");
             return status;
         }
 

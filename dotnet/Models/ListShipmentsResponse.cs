@@ -152,7 +152,7 @@ namespace ShipStation.Models
         public long OrderItemId { get; set; }
 
         [JsonProperty("lineItemKey")]
-        public object LineItemKey { get; set; }
+        public string LineItemKey { get; set; }
 
         [JsonProperty("sku")]
         public string Sku { get; set; }
@@ -161,16 +161,22 @@ namespace ShipStation.Models
         public string Name { get; set; }
 
         [JsonProperty("imageUrl")]
-        public object ImageUrl { get; set; }
+        public Uri ImageUrl { get; set; }
 
         [JsonProperty("weight")]
-        public object Weight { get; set; }
+        public Weight Weight { get; set; }
 
         [JsonProperty("quantity")]
         public long Quantity { get; set; }
 
         [JsonProperty("unitPrice")]
-        public long UnitPrice { get; set; }
+        public double UnitPrice { get; set; }
+
+        [JsonProperty("taxAmount")]
+        public double? TaxAmount { get; set; }
+
+        [JsonProperty("shippingAmount")]
+        public double? ShippingAmount { get; set; }
 
         [JsonProperty("warehouseLocation")]
         public object WarehouseLocation { get; set; }
@@ -182,6 +188,18 @@ namespace ShipStation.Models
         public long ProductId { get; set; }
 
         [JsonProperty("fulfillmentSku")]
-        public object FulfillmentSku { get; set; }
+        public string FulfillmentSku { get; set; }
+
+        [JsonProperty("adjustment")]
+        public bool Adjustment { get; set; }
+
+        [JsonProperty("upc")]
+        public string Upc { get; set; }
+
+        [JsonProperty("createDate")]
+        public DateTimeOffset CreateDate { get; set; }
+
+        [JsonProperty("modifyDate")]
+        public DateTimeOffset ModifyDate { get; set; }
     }
 }

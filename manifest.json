@@ -18,16 +18,6 @@
         "description": "ShipStation API Secret",
         "type": "string"
       },
-	  "appKey": {
-        "title": "App Key",
-        "description": "Vtex App Key",
-        "type": "string"
-      },
-      "appToken": {
-        "title": "App Token",
-        "description": "Vtex App Token",
-        "type": "string"
-      },
       "weightUnit": {
         "title": "Weight Unit",
         "description": "Unit of weight measure",
@@ -36,6 +26,11 @@
       "splitShipmentByLocation": {
         "title": "Split Shipments",
         "description": "Split Shipments By Location",
+        "type": "boolean"
+      },
+      "sendPickupInStore": {
+        "title": "Send Pickup In Store",
+        "description": "Send Pickup In Store Orders to ShipStation",
         "type": "boolean"
       }
     }
@@ -72,6 +67,13 @@
       }
     },
     {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "portal.vtexcommercestable.com.br",
+        "path": "/api/oms/*"
+      }
+    },
+    {
       "name": "ADMIN_DS"
     },
     {
@@ -82,6 +84,9 @@
     },
     {
       "name": "ShippingAction"
+    },
+    {
+      "name": "WorkflowAction"
     },
     {
       "name": "outbound-access",

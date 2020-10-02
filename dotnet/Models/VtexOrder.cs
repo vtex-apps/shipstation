@@ -77,7 +77,7 @@ namespace ShipStation.Models
         public string State { get; set; }
 
         [JsonProperty("isCheckedIn")]
-        public bool IsCheckedIn { get; set; }
+        public bool? IsCheckedIn { get; set; }
 
         [JsonProperty("sellerOrderId")]
         public string SellerOrderId { get; set; }
@@ -161,7 +161,7 @@ namespace ShipStation.Models
         public string TimeZoneLastChange { get; set; }
 
         [JsonProperty("isCompleted")]
-        public bool IsCompleted { get; set; }
+        public bool? IsCompleted { get; set; }
 
         [JsonProperty("merchantName")]
         public object MerchantName { get; set; }
@@ -173,16 +173,16 @@ namespace ShipStation.Models
         public long RoundingError { get; set; }
 
         [JsonProperty("allowEdition")]
-        public bool AllowEdition { get; set; }
+        public bool? AllowEdition { get; set; }
 
         [JsonProperty("allowCancellation")]
-        public bool AllowCancellation { get; set; }
+        public bool? AllowCancellation { get; set; }
 
         [JsonProperty("isUserDataVisible")]
-        public bool IsUserDataVisible { get; set; }
+        public bool? IsUserDataVisible { get; set; }
 
         [JsonProperty("allowChangeSeller")]
-        public bool AllowChangeSeller { get; set; }
+        public bool? AllowChangeSeller { get; set; }
     }
 
     public class ClientPreferencesData
@@ -191,7 +191,7 @@ namespace ShipStation.Models
         public string Locale { get; set; }
 
         [JsonProperty("optinNewsLetter")]
-        public bool OptinNewsLetter { get; set; }
+        public bool? OptinNewsLetter { get; set; }
     }
 
     public class ClientProfileData
@@ -230,13 +230,13 @@ namespace ShipStation.Models
         public object CorporatePhone { get; set; }
 
         [JsonProperty("isCorporate")]
-        public bool IsCorporate { get; set; }
+        public bool? IsCorporate { get; set; }
 
         [JsonProperty("profileCompleteOnLoading")]
-        public bool ProfileCompleteOnLoading { get; set; }
+        public bool? ProfileCompleteOnLoading { get; set; }
 
         [JsonProperty("profileErrorOnLoading")]
-        public bool ProfileErrorOnLoading { get; set; }
+        public bool? ProfileErrorOnLoading { get; set; }
 
         [JsonProperty("customerClass")]
         public object CustomerClass { get; set; }
@@ -245,10 +245,10 @@ namespace ShipStation.Models
     public class ContextData
     {
         [JsonProperty("loggedIn")]
-        public bool LoggedIn { get; set; }
+        public bool? LoggedIn { get; set; }
 
         [JsonProperty("hasAccessToOrderFormEnabledByLicenseManager")]
-        public bool HasAccessToOrderFormEnabledByLicenseManager { get; set; }
+        public bool? HasAccessToOrderFormEnabledByLicenseManager { get; set; }
 
         [JsonProperty("userAgent")]
         public string UserAgent { get; set; }
@@ -305,7 +305,7 @@ namespace ShipStation.Models
         public string Name { get; set; }
 
         [JsonProperty("required")]
-        public bool AssemblyOptionRequired { get; set; }
+        public bool? AssemblyOptionRequired { get; set; }
 
         [JsonProperty("inputValues")]
         public Schema InputValues { get; set; }
@@ -425,7 +425,7 @@ namespace ShipStation.Models
         public long RewardValue { get; set; }
 
         [JsonProperty("isGift")]
-        public bool IsGift { get; set; }
+        public bool? IsGift { get; set; }
 
         [JsonProperty("preSaleDate")]
         public object PreSaleDate { get; set; }
@@ -536,7 +536,7 @@ namespace ShipStation.Models
         public string Name { get; set; }
 
         [JsonProperty("required")]
-        public bool AttachmentOfferingRequired { get; set; }
+        public bool? AttachmentOfferingRequired { get; set; }
 
         [JsonProperty("schema")]
         public Schema Schema { get; set; }
@@ -566,7 +566,7 @@ namespace ShipStation.Models
         public string JurisName { get; set; }
 
         [JsonProperty("isPercentual")]
-        public bool IsPercentual { get; set; }
+        public bool? IsPercentual { get; set; }
 
         [JsonProperty("identifier")]
         public object Identifier { get; set; }
@@ -590,7 +590,7 @@ namespace ShipStation.Models
     public class Transaction
     {
         [JsonProperty("isActive")]
-        public bool IsActive { get; set; }
+        public bool? IsActive { get; set; }
 
         [JsonProperty("transactionId")]
         public string TransactionId { get; set; }
@@ -602,7 +602,7 @@ namespace ShipStation.Models
         public List<Payment> Payments { get; set; }
 
         [JsonProperty("sharedTransaction")]
-        public bool SharedTransaction { get; set; }
+        public bool? SharedTransaction { get; set; }
     }
 
     public class Payment
@@ -792,7 +792,7 @@ namespace ShipStation.Models
         public string AddressId { get; set; }
 
         [JsonProperty("isDisposable")]
-        public bool IsDisposable { get; set; }
+        public bool? IsDisposable { get; set; }
 
         [JsonProperty("postalCode")]
         public string PostalCode { get; set; }
@@ -936,7 +936,7 @@ namespace ShipStation.Models
     public class PickupStoreInfo
     {
         [JsonProperty("isPickupStore")]
-        public bool IsPickupStore { get; set; }
+        public bool? IsPickupStore { get; set; }
 
         [JsonProperty("friendlyName")]
         public string FriendlyName { get; set; }
@@ -987,7 +987,7 @@ namespace ShipStation.Models
         public string CountryCode { get; set; }
 
         [JsonProperty("saveUserData")]
-        public bool SaveUserData { get; set; }
+        public bool? SaveUserData { get; set; }
 
         [JsonProperty("timeZone")]
         public string TimeZone { get; set; }
@@ -1020,7 +1020,7 @@ namespace ShipStation.Models
         public long CurrencyGroupSize { get; set; }
 
         [JsonProperty("startsWithCurrencySymbol")]
-        public bool StartsWithCurrencySymbol { get; set; }
+        public bool? StartsWithCurrencySymbol { get; set; }
     }
 
     public class Total

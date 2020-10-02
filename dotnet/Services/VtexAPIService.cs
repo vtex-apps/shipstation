@@ -266,7 +266,8 @@ namespace ShipStation.Services
                             success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
                             if(success)
                             {
-                                success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                //success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
                             }
                             break;
                         //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
@@ -281,18 +282,18 @@ namespace ShipStation.Services
                             success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
                             break;
                         default:
-                            Console.WriteLine($"State {hookNotification.State} not implemeted.");
-                            _context.Vtex.Logger.Info("ProcessNotification", null, $"State {hookNotification.State} not implemeted.");
+                            //Console.WriteLine($"State {hookNotification.State} not implemeted.");
+                            //_context.Vtex.Logger.Info("ProcessNotification", null, $"State {hookNotification.State} not implemeted.");
                             break;
                     }
                     break;
                 case ShipStationConstants.Domain.Marketplace:
-                    Console.WriteLine($"Marketplace not implemeted.");
-                    _context.Vtex.Logger.Info("ProcessNotification", null, $"Marketplace not implemeted.");
+                    //Console.WriteLine($"Marketplace not implemeted.");
+                    //_context.Vtex.Logger.Info("ProcessNotification", null, $"Marketplace not implemeted.");
                     break;
                 default:
-                    Console.WriteLine($"Domain {hookNotification.Domain} not implemeted.");
-                    _context.Vtex.Logger.Info("ProcessNotification", null, $"Domain {hookNotification.Domain} not implemeted.");
+                    //Console.WriteLine($"Domain {hookNotification.Domain} not implemeted.");
+                    //_context.Vtex.Logger.Info("ProcessNotification", null, $"Domain {hookNotification.Domain} not implemeted.");
                     break;
             }
 
@@ -364,15 +365,15 @@ namespace ShipStation.Services
                 request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
             }
 
-            MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
-            request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
-            request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
 
             var client = _clientFactory.CreateClient();
             var response = await client.SendAsync(request);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            Console.WriteLine($"SetOrderStatus [{response.StatusCode}] {responseContent}");
+            Console.WriteLine($"SetOrderStatus to {orderStatus} for Order '{orderId}' [{response.StatusCode}] {responseContent}");
 
             return response.IsSuccessStatusCode;
         }
@@ -400,7 +401,7 @@ namespace ShipStation.Services
                         TrackingNumber = shipment.TrackingNumber,
                         Type = ShipStationConstants.InvoiceType.OUTPUT,
                         InvoiceNumber = shipment.ShipmentId.ToString(),
-                        InvoiceValue = 0,
+                        InvoiceValue = 0L,
                         IssuanceDate = shipment.ShipDate.ToString(),
                         Items = new List<InvoiceItem>(),
                         TrackingUrl = null
@@ -412,11 +413,30 @@ namespace ShipStation.Services
                         Console.WriteLine($"Item '{shipmentItem.Name}' {sku} ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
                         sb.AppendLine($"    Item '{shipmentItem.Name}' {sku} ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
 
-                        LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(sku)).FirstOrDefault();
-                        Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
+                        //LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(sku)).FirstOrDefault();
+                        //Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
 
-                        long itemPrice = ToCents(shipmentItem.UnitPrice);
-                        long itemTax = sla.Tax;
+                        //VtexOrderItem item = vtexOrder.Items.Where(i => i.Id.Equals(shipmentItem.Sku)).FirstOrDefault();
+                        //long itemTax = 0l;
+                        //foreach (PriceTag priceTag in item.PriceTags)
+                        //{
+                        //    string name = priceTag.Name.ToLower();
+                        //    if (name.Contains("tax@") || name.Contains("taxhub@"))
+                        //    {
+                        //        if (priceTag.IsPercentual ?? false)
+                        //        {
+                        //            itemTax += (long)(item.SellingPrice * priceTag.RawValue);
+                        //        }
+                        //        else
+                        //        {
+                        //            itemTax += priceTag.Value;
+                        //        }
+                        //    }
+                        //}
+
+                        long itemPrice = ToCents(shipmentItem.UnitPrice * shipmentItem.Quantity);
+                        long itemTax = ToCents(shipmentItem.TaxAmount ?? 0d);
+                        long shippingCost = ToCents(shipmentItem.ShippingAmount ?? 0d);
 
                         InvoiceItem invoiceItem = new InvoiceItem
                         {
@@ -426,15 +446,18 @@ namespace ShipStation.Services
                         };
 
                         request.Items.Add(invoiceItem);
-                        request.InvoiceValue += (itemPrice + itemTax);
+                        request.InvoiceValue += (itemPrice + itemTax + shippingCost);
                         Console.WriteLine($"request.InvoiceValue = {request.InvoiceValue}");
+                        sb.AppendLine($"        Tax={itemTax} Shipping={shippingCost}");
                     }
 
                     // Don't charge more than order total
-                    request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
+                    //request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
 
                     OrderInvoiceNotificationResponse response = await this.OrderInvoiceNotification(orderId, request);
                     success = response != null;
+                    sb.AppendLine($"    Response='{JsonConvert.SerializeObject(response)}'");
+                    _context.Vtex.Logger.Info("ProcessShipNotification", orderId, JsonConvert.SerializeObject(request));
                 }
             }
 
@@ -513,7 +536,7 @@ namespace ShipStation.Services
 
         private long ToCents(double asDollars)
         {
-            return (long)asDollars * 100;
+            return (long)(asDollars * 100);
         }
     }
 }
