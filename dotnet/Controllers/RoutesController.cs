@@ -167,6 +167,18 @@
             return Json(await _vtexAPIService.ListAllDocks());
         }
 
+        public async Task<IActionResult> ListAllWarehouses()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            return Json(await _vtexAPIService.ListAllWarehouses());
+        }
+
+        public async Task<IActionResult> ListWarehouses()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            return Json(await _shipStationAPIService.ListWarehouses());
+        }
+
         public string PrintHeaders()
         {
             string headers = "--->>> Headers <<<---\n";

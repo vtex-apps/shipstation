@@ -1,4 +1,5 @@
 ﻿using ShipStation.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ShipStation.Services
@@ -12,5 +13,6 @@ namespace ShipStation.Services
         Task<ListShipmentsResponse> ListShipments(string queryPrameters);
         Task<ListFulfillmentsResponse> ListFulFillments(string queryPrameters);
         Task<CreateWarehouseResponse> CreateWarehouse(CreateWarehouseRequest createWarehouseRequest);
+        Task<List<ListWarehousesResponse>> ListWarehouses();
     }
 }

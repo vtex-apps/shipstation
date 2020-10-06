@@ -239,53 +239,112 @@ namespace ShipStation.Models
 
     public class AdvancedOptions
     {
+        /// <summary>
+        /// Specifies the warehouse where to the order is to ship from. If the order was fulfilled using a fill provider,
+        /// no warehouse is attached to these orders and will result in a null value being returned.
+        /// </summary>
         [JsonProperty("warehouseId")]
         public long WarehouseId { get; set; }
 
+        /// <summary>
+        /// Specifies whether the order is non-machinable.
+        /// </summary>
         [JsonProperty("nonMachinable")]
         public bool NonMachinable { get; set; }
 
+        /// <summary>
+        /// Specifies whether the order is to be delivered on a Saturday.
+        /// </summary>
         [JsonProperty("saturdayDelivery")]
         public bool SaturdayDelivery { get; set; }
 
+        /// <summary>
+        /// Specifies whether the order contains alcohol.
+        /// </summary>
         [JsonProperty("containsAlcohol")]
         public bool ContainsAlcohol { get; set; }
 
+        /// <summary>
+        /// Read-Only: Returns whether or not an order has been merged or split with another order. Read Only
+        /// </summary>
         [JsonProperty("mergedOrSplit")]
         public bool MergedOrSplit { get; set; }
 
+        /// <summary>
+        /// Read-Only: Array of orderIds. Each orderId identifies an order that was merged with the associated order. Read Only
+        /// </summary>
         [JsonProperty("mergedIds")]
-        public List<object> MergedIds { get; set; }
+        public List<long> MergedIds { get; set; }
 
+        /// <summary>
+        /// Read-Only: If an order has been split, it will return the Parent ID of the order with which it has been split.
+        /// If the order has not been split, this field will return null. Read Only
+        /// </summary>
         [JsonProperty("parentId")]
-        public object ParentId { get; set; }
+        public long? ParentId { get; set; }
 
+        /// <summary>
+        /// ID of store that is associated with the order. If not specified in the CreateOrder call either to create or update an order,
+        /// ShipStation will default to the first manual store on the account. Can only be specified during order creation.
+        /// </summary>
         [JsonProperty("storeId")]
         public long StoreId { get; set; }
 
+        /// <summary>
+        /// Field that allows for custom data to be associated with an order
+        /// </summary>
         [JsonProperty("customField1")]
         public string CustomField1 { get; set; }
 
+        /// <summary>
+        /// Field that allows for custom data to be associated with an order
+        /// </summary>
         [JsonProperty("customField2")]
         public string CustomField2 { get; set; }
 
+        /// <summary>
+        /// Field that allows for custom data to be associated with an order
+        /// </summary>
         [JsonProperty("customField3")]
         public Uri CustomField3 { get; set; }
 
+        /// <summary>
+        /// Identifies the original source/marketplace of the order
+        /// </summary>
         [JsonProperty("source")]
         public string Source { get; set; }
 
+        /// <summary>
+        /// dentifies which party to bill. Possible values: "my_account", "my_other_account" (see note below), "recipient", "third_party". 
+        /// billTo values can only be used when creating/updating orders.
+        /// </summary>
         [JsonProperty("billToParty")]
-        public object BillToParty { get; set; }
+        public string BillToParty { get; set; }
 
+        /// <summary>
+        /// Account number of billToParty. billTo values can only be used when creating/updating orders.
+        /// </summary>
         [JsonProperty("billToAccount")]
-        public object BillToAccount { get; set; }
+        public string BillToAccount { get; set; }
 
+        /// <summary>
+        /// Postal Code of billToParty. billTo values can only be used when creating/updating orders.
+        /// </summary>
         [JsonProperty("billToPostalCode")]
-        public object BillToPostalCode { get; set; }
+        public string BillToPostalCode { get; set; }
 
+        /// <summary>
+        /// Country Code of billToParty. billTo values can only be used when creating/updating orders.
+        /// </summary>
         [JsonProperty("billToCountryCode")]
-        public object BillToCountryCode { get; set; }
+        public string BillToCountryCode { get; set; }
+
+        /// <summary>
+        /// When using my_other_account billToParty value, the shippingProviderId value associated with the desired account. 
+        /// Make a List Carriers call to obtain shippingProviderId values.
+        /// </summary>
+        [JsonProperty("billToMyOtherAccount")]
+        public string BillToMyOtherAccount { get; set; }
     }
 
     public class ToAddress
@@ -353,79 +412,194 @@ namespace ShipStation.Models
 
     public class InternationalOptions
     {
+        /// <summary>
+        /// Contents of international shipment. Available options are: "merchandise", "documents", "gift", "returned_goods", or "sample"
+        /// </summary>
         [JsonProperty("contents")]
         public object Contents { get; set; }
 
+        /// <summary>
+        /// An array of customs items.
+        /// NOTE: To supply customsItems in the CreateOrder call and have the values not be overwritten by ShipStation, you must set the International Settings > Customs Declarations to "Leave blank (Enter Manually)" in the UI: https://ss.shipstation.com/#/settings/international
+        /// Please see our ShipStation's International Settings KB article to learn how to make this change in the UI.
+        /// </summary>
         [JsonProperty("customsItems")]
-        public object CustomsItems { get; set; }
+        public CustomsItems CustomsItems { get; set; }
+
+        /// <summary>
+        /// Non-Delivery option for international shipment. Available options are: "return_to_sender" or "treat_as_abandoned".
+        /// NOTE: If the shipment is created through the Orders/CreateLabelForOrder endpoint and the nonDelivery field is not specified then value defaults based on the International Setting in the UI.If the call is being made to the Shipments/CreateLabel endpoint and the nonDelivery field is not specified then the value will default to "return_to_sender".
+        /// </summary>
+        [JsonProperty("nonDelivery")]
+        public string NonDelivery { get; set; }
     }
 
     public class OrderItem
     {
+        /// <summary>
+        /// An identifier for the OrderItem in the originating system.
+        /// </summary>
         [JsonProperty("lineItemKey")]
         public string LineItemKey { get; set; }
 
+        /// <summary>
+        /// The SKU (stock keeping unit) identifier for the product associated with this line item.
+        /// </summary>
         [JsonProperty("sku")]
         public string Sku { get; set; }
 
+        /// <summary>
+        /// The name of the product associated with this line item. Cannot be null
+        /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// The public URL to the product image.
+        /// </summary>
         [JsonProperty("imageUrl")]
         public object ImageUrl { get; set; }
 
+        /// <summary>
+        /// The weight of a single item.
+        /// </summary>
         [JsonProperty("weight")]
         public Weight Weight { get; set; }
 
+        /// <summary>
+        /// The quantity of product ordered.
+        /// </summary>
         [JsonProperty("quantity")]
         public long Quantity { get; set; }
 
+        /// <summary>
+        /// The sell price of a single item specified by the order source.
+        /// </summary>
         [JsonProperty("unitPrice")]
         public double UnitPrice { get; set; }
 
+        /// <summary>
+        /// The tax price of a single item specified by the order source.
+        /// </summary>
         [JsonProperty("taxAmount")]
         public double? TaxAmount { get; set; }
 
+        /// <summary>
+        /// The shipping amount or price of a single item specified by the order source.
+        /// </summary>
         [JsonProperty("shippingAmount")]
         public double? ShippingAmount { get; set; }
 
+        /// <summary>
+        /// The location of the product within the seller's warehouse (e.g. Aisle 3, Shelf A, Bin 5)
+        /// </summary>
         [JsonProperty("warehouseLocation")]
         public string WarehouseLocation { get; set; }
 
+        /// <summary>
+        /// Item Option
+        /// </summary>
         [JsonProperty("options")]
         public List<Option> Options { get; set; }
 
+        /// <summary>
+        /// The identifier for the Product Resource associated with this OrderItem.
+        /// </summary>
         [JsonProperty("productId")]
         public string ProductId { get; set; }
 
+        /// <summary>
+        /// The fulfillment SKU associated with this OrderItem if the fulfillment provider requires an identifier other then the SKU.
+        /// </summary>
         [JsonProperty("fulfillmentSku")]
         public string FulfillmentSku { get; set; }
 
+        /// <summary>
+        /// Indicates that the OrderItem is a non-physical adjustment to the order (e.g. a discount or promotional code)
+        /// </summary>
         [JsonProperty("adjustment")]
         public bool Adjustment { get; set; }
 
+        /// <summary>
+        /// The Universal Product Code associated with this OrderItem.
+        /// </summary>
         [JsonProperty("upc")]
         public string Upc { get; set; }
     }
 
     public class Option
     {
+        /// <summary>
+        /// Name of item option. Example: "Size"
+        /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// The value of the item option. Example: "Medium"
+        /// </summary>
         [JsonProperty("value")]
         public string Value { get; set; }
     }
 
     public class Weight
     {
+        /// <summary>
+        /// weight value.
+        /// </summary>
         [JsonProperty("value")]
         public double Value { get; set; }
 
+        /// <summary>
+        /// units of weight. Allowed units are: "pounds", "ounces", or "grams"
+        /// </summary>
         [JsonProperty("units")]
         public string Units { get; set; }
 
+        /// <summary>
+        /// (read only) A numeric value that is equivalent to the above units field.
+        /// </summary>
         [JsonProperty("WeightUnits")]
         public long WeightUnits { get; set; }
+    }
+
+    public class CustomsItems
+    {
+        /// <summary>
+        /// Read Only field. When this field is not submitted in the Order/CreateOrder call, it will create a new customs line.
+        /// If this field is included when submitting an order through Order/CreateOrder, then it will look for the corresponding customs line and update any values.
+        /// </summary>
+        [JsonProperty("customsItemId")]
+        public string CustomsItemId { get; set; }
+
+        /// <summary>
+        /// A short description of the CustomsItem
+        /// </summary>
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        /// <summary>
+        /// The quantity for this line item
+        /// </summary>
+        [JsonProperty("quantity")]
+        public long Quantity { get; set; }
+
+        /// <summary>
+        /// The value (in USD) of the line item
+        /// </summary>
+        [JsonProperty("value")]
+        public long Value { get; set; }
+
+        /// <summary>
+        /// The Harmonized Commodity Code for this line item
+        /// </summary>
+        [JsonProperty("harmonizedTariffCode")]
+        public string HarmonizedTariffCode { get; set; }
+
+        /// <summary>
+        /// The 2-character ISO country code where the item originated
+        /// </summary>
+        [JsonProperty("countryOfOrigin")]
+        public string CountryOfOrigin { get; set; }
     }
 }

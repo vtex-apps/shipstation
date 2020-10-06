@@ -383,7 +383,7 @@ namespace ShipStation.Models
         public string RefId { get; set; }
 
         [JsonProperty("ean")]
-        public object Ean { get; set; }
+        public string Ean { get; set; }
 
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -401,7 +401,7 @@ namespace ShipStation.Models
         public object ParentAssemblyBinding { get; set; }
 
         [JsonProperty("assemblies")]
-        public List<object> Assemblies { get; set; }
+        public List<ItemAssembly> Assemblies { get; set; }
 
         [JsonProperty("tax")]
         public long Tax { get; set; }
@@ -1033,5 +1033,14 @@ namespace ShipStation.Models
 
         [JsonProperty("value")]
         public long Value { get; set; }
+    }
+
+    public class ItemAssembly
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("inputValues")]
+        public object InputValues { get; set; }
     }
 }

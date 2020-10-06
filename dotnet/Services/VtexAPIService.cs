@@ -506,7 +506,7 @@ namespace ShipStation.Services
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/logistics/pvt/configuration/docks")
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/logistics/pvt/configuration/warehouses")
             };
 
             request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
@@ -525,7 +525,7 @@ namespace ShipStation.Services
             var client = _clientFactory.CreateClient();
             var response = await client.SendAsync(request);
             string responseContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"ListAllDocks [{response.StatusCode}] {responseContent}");
+            Console.WriteLine($"ListAllWarehouses [{response.StatusCode}] {responseContent}");
             if (response.IsSuccessStatusCode)
             {
                 listAllWarehousesResponse = JsonConvert.DeserializeObject<ListAllWarehousesResponse>(responseContent);

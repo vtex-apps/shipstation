@@ -21,7 +21,17 @@
       "weightUnit": {
         "title": "Weight Unit",
         "description": "Unit of weight measure",
-        "type": "string"
+        "type": "string",
+        "enum": [
+          "pounds",
+          "ounces",
+          "grams"
+        ],
+        "enumNames": [
+          "pounds",
+          "ounces",
+          "grams"
+        ]
       },
       "splitShipmentByLocation": {
         "title": "Split Shipments",

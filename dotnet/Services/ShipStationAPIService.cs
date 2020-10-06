@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Vtex.Api.Context;
+using System.Reflection;
 
 namespace ShipStation.Services
 {
@@ -198,10 +199,32 @@ namespace ShipStation.Services
                 string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.ORDERS}/{ShipStationConstants.API.CREATE_ORDER}";
                 MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
 
+                //StringBuilder custom1 = new StringBuilder();
+                //var assemblies = vtexOrder.Items.SelectMany(i => i.Assemblies);
+                //foreach (var assembly in assemblies)
+                //{
+                //    foreach (PropertyInfo prop in assembly.GetType().GetProperties())
+                //    {
+                //        var type = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+                //        try
+                //        {
+                //            custom1.AppendLine(prop.GetValue(assembly, null).ToString());
+                //            Console.WriteLine($"- {type}   {prop.GetValue(assembly, null)}");
+                //        }
+                //        catch(Exception ex)
+                //        {
+                //            Console.WriteLine($"- err - {type}   {ex.Message}");
+                //        }
+
+                //    }
+                //}
+
+                //custom1.AppendJoin("|", assemblies);
+
                 ShipStationOrder createUpdateOrderRequest = new ShipStationOrder();
                 createUpdateOrderRequest.AdvancedOptions = new AdvancedOptions
                 {
-
+                    
                 };
 
                 //createUpdateOrderRequest.AmountPaid = ToDollar(vtexOrder.Totals.Sum(t => t.Value));
@@ -251,9 +274,13 @@ namespace ShipStation.Services
                 createUpdateOrderRequest.OrderNumber = vtexOrder.OrderId;
                 createUpdateOrderRequest.OrderStatus = await this.GetShipStationOrderStatus(vtexOrder.State);
                 createUpdateOrderRequest.PackageCode = null;
-                createUpdateOrderRequest.PaymentDate = null; // ReceiptCollection?
-                createUpdateOrderRequest.PaymentMethod = null; // paymentData?
-                createUpdateOrderRequest.RequestedShippingService = null; // logisticsInfo
+                createUpdateOrderRequest.PaymentDate = vtexOrder.ReceiptData.ReceiptCollection.Select(r => r.Date).FirstOrDefault();
+                List<string> paymentMethods = new List<string>();
+                // Need to find format for gift cards
+                //paymentMethods.AddRange(vtexOrder.PaymentData.GiftCards.)
+                paymentMethods.AddRange(vtexOrder.PaymentData.Transactions.SelectMany(t => t.Payments).Select(p => p.PaymentSystemName).Distinct().ToList());
+                createUpdateOrderRequest.PaymentMethod = String.Join(", ", paymentMethods.ToArray());
+                createUpdateOrderRequest.RequestedShippingService = vtexOrder.ShippingData.LogisticsInfo.SelectMany(l => l.Slas).SelectMany(s => s.DeliveryIds).Select(d => d.CourierName).FirstOrDefault();
                 createUpdateOrderRequest.ServiceCode = null;
                 createUpdateOrderRequest.ShipByDate = null;
                 createUpdateOrderRequest.ShipDate = null;
@@ -280,12 +307,15 @@ namespace ShipStation.Services
 
                 createUpdateOrderRequest.Items = new List<OrderItem>();
 
+                Dictionary<string, List<OrderItem>> splitItems = new Dictionary<string, List<OrderItem>>();
+                Dictionary<string, SplitItemsWrapper> splitItemsTotal = new Dictionary<string, SplitItemsWrapper>();
                 long totalTax = 0L;
                 long itemsTotal = 0L;
                 long shippingTax = 0L;
                 long shippingTotal = 0L;
                 foreach (VtexOrderItem item in vtexOrder.Items)
                 {
+                    Console.WriteLine($"    ----------  [{item.Id}] '{item.Name}' --------------  ");
                     LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(item.Id)).FirstOrDefault();
                     Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
                     if (!merchantSettings.SendPickupInStore && (sla.PickupStoreInfo.IsPickupStore ?? false))
@@ -323,13 +353,49 @@ namespace ShipStation.Services
                         orderItem.LineItemKey = item.Id;
                         orderItem.Name = item.Name;
                         orderItem.Options = new List<Option>();
+
+                        //foreach (PropertyInfo prop in item.AdditionalInfo.GetType().GetProperties())
+                        //{
+                        //    var type = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+                        //    try
+                        //    {
+                        //        Option option = new Option
+                        //        {
+                        //            Name = prop.Name,
+                        //            Value = prop.GetValue(item.AdditionalInfo, null).ToString()
+                        //        };
+
+                        //        orderItem.Options.Add(option);
+                        //        Console.WriteLine($"- {type} '{prop.Name}'  {prop.GetValue(item.AdditionalInfo, null)}");
+                        //    }
+                        //    catch (Exception ex)
+                        //    {
+                        //        Console.WriteLine($"- err - {type}   {ex.Message}");
+                        //    }
+                        //}
+
+                        orderItem.Options.Add(new Option { Name = "Brand Id", Value = item.AdditionalInfo.BrandId });
+                        orderItem.Options.Add(new Option { Name = "Brand Name", Value = item.AdditionalInfo.BrandName });
+                        orderItem.Options.Add(new Option { Name = "Categories Ids", Value = item.AdditionalInfo.CategoriesIds });
+
+                        foreach (ItemAssembly assembly in item.Assemblies)
+                        {
+                            Option option = new Option
+                            {
+                                Name = assembly.Id,
+                                Value = JsonConvert.SerializeObject(assembly.InputValues)
+                            };
+
+                            orderItem.Options.Add(option);
+                        }
+
                         orderItem.ProductId = item.ProductId;
                         orderItem.Quantity = item.Quantity;
                         orderItem.ShippingAmount = ToDollar(sla.Price);
                         orderItem.Sku = item.SellerSku;
                         orderItem.TaxAmount = ToDollar(itemTax);
                         orderItem.UnitPrice = ToDollar(item.SellingPrice);
-                        orderItem.Upc = null;
+                        orderItem.Upc = item.Ean;
                         orderItem.WarehouseLocation = null;
                         orderItem.Weight = new Weight
                         {
@@ -337,33 +403,63 @@ namespace ShipStation.Services
                             Value = item.AdditionalInfo.Dimension.Weight
                         };
 
-                        //List<DeliveryId> deliveryIds = sla.DeliveryIds;
-                        //if (deliveryIds.Count > 1)
-                        //{
+                        string warehouseId = string.Empty;
+                        if (merchantSettings.SplitShipmentByLocation)
+                        {
+                            List<DeliveryId> deliveryIds = sla.DeliveryIds;
+                            warehouseId = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
+                            Console.WriteLine($"--------------------------------->     Setting Warehouse Id to '{warehouseId}'");
+                        }
 
-                        //}
-                        //else
-                        //{
-                        //    string warehouseId = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
-                        //    if (splitItems.Keys.Contains(warehouseId))
-                        //    {
-                        //        if (splitItems[warehouseId] != null)
-                        //        {
+                        if (splitItems.Keys.Contains(warehouseId))
+                        {
+                            if (splitItems[warehouseId] != null)
+                            {
+                                splitItems[warehouseId].Add(orderItem);
+                            }
+                            else
+                            {
+                                splitItems[warehouseId] = new List<OrderItem>();
+                                splitItems[warehouseId].Add(orderItem);
+                            }
+                        }
+                        else
+                        {
+                            splitItems.Add(warehouseId, new List<OrderItem>());
+                            splitItems[warehouseId].Add(orderItem);
+                        }
 
-                        //        }
-                        //        else
-                        //        {
-                        //            splitItems[warehouseId] = new List<OrderItem>();
-                        //            splitItems[warehouseId].Add(orderItem);
-                        //        }
-                        //    }
-                        //    else
-                        //    {
+                        if (splitItemsTotal.Keys.Contains(warehouseId))
+                        {
+                            if (splitItemsTotal[warehouseId] != null)
+                            {
+                                splitItemsTotal[warehouseId].ShippingAmount += orderItem.ShippingAmount ?? 0D;
+                                splitItemsTotal[warehouseId].TaxAmount += orderItem.TaxAmount ?? 0D;
+                                splitItemsTotal[warehouseId].AmountPaid += ((orderItem.UnitPrice * orderItem.Quantity) + orderItem.ShippingAmount ?? 0D + orderItem.TaxAmount ?? 0D + ToDollar(sla.Tax));
+                            }
+                            else
+                            {
+                                splitItemsTotal[warehouseId] = new SplitItemsWrapper
+                                {
+                                    AmountPaid = ((orderItem.UnitPrice * orderItem.Quantity) + orderItem.ShippingAmount ?? 0D + orderItem.TaxAmount ?? 0D + ToDollar(sla.Tax)),
+                                    ShippingAmount = orderItem.ShippingAmount ?? 0D,
+                                    TaxAmount = orderItem.TaxAmount ?? 0D
+                                };
+                            }
+                        }
+                        else
+                        {
+                            SplitItemsWrapper itemsWrapper = new SplitItemsWrapper
+                            {
+                                AmountPaid = ((orderItem.UnitPrice * orderItem.Quantity) + orderItem.ShippingAmount ?? 0D + orderItem.TaxAmount ?? 0D + ToDollar(sla.Tax)),
+                                ShippingAmount = orderItem.ShippingAmount ?? 0D,
+                                TaxAmount = orderItem.TaxAmount ?? 0D
+                            };
 
-                        //    }
-                        //}
+                            splitItemsTotal.Add(warehouseId, itemsWrapper);
+                        }
 
-                        createUpdateOrderRequest.Items.Add(orderItem);
+                        //createUpdateOrderRequest.Items.Add(orderItem);
                     }
                 }
 
@@ -371,25 +467,54 @@ namespace ShipStation.Services
                 createUpdateOrderRequest.ShippingAmount = ToDollar(shippingTotal);
                 createUpdateOrderRequest.TaxAmount = ToDollar(totalTax);
 
-                _context.Vtex.Logger.Info("CreateUpdateOrder", createUpdateOrderRequest.OrderNumber, $"Paid={createUpdateOrderRequest.AmountPaid} (items={itemsTotal} tax={totalTax} shippingTax={shippingTax} shippingTotal={shippingTotal})");
-                _context.Vtex.Logger.Info("CreateUpdateOrder", createUpdateOrderRequest.OrderNumber, JsonConvert.SerializeObject(createUpdateOrderRequest));
-
-                if (createUpdateOrderRequest.Items.Count > 0)
+                foreach(string warehouseId in splitItems.Keys)
                 {
-                    responseWrapper = await this.SendRequest(url, createUpdateOrderRequest);
-                    _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.State}'='{createUpdateOrderRequest.OrderStatus}'");
-                    //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
-                    Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
-                    //Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
-                }
-                else
-                {
-                    responseWrapper = new ResponseWrapper
+                    Console.WriteLine($"--------------------------------->  Warehouse Id '{warehouseId}' {splitItems[warehouseId].Count} Items.");
+                    ShipStationOrder shipStationOrderTemp = createUpdateOrderRequest;
+                    if (!string.IsNullOrEmpty(warehouseId))
                     {
-                        IsSuccess = false,
-                        Message = "No Ship Items"
-                    };
+                        shipStationOrderTemp.OrderKey = shipStationOrderTemp.OrderKey + "|" + warehouseId;
+                        shipStationOrderTemp.AmountPaid = splitItemsTotal[warehouseId].AmountPaid;
+                        shipStationOrderTemp.ShippingAmount = splitItemsTotal[warehouseId].ShippingAmount;
+                        shipStationOrderTemp.TaxAmount = splitItemsTotal[warehouseId].TaxAmount;
+
+                        List<ListWarehousesResponse> listWarehouses = await this.ListWarehouses();
+                        shipStationOrderTemp.AdvancedOptions.WarehouseId = listWarehouses.Where(w => w.WarehouseName.Equals(warehouseId)).Select(w => w.WarehouseId).FirstOrDefault();
+                    }
+
+                    //shipStationOrderTemp.AdvancedOptions.WarehouseId = warehouseId;
+                    shipStationOrderTemp.Items = splitItems[warehouseId];
+                    if (shipStationOrderTemp.Items.Count > 0)
+                    {
+                        responseWrapper = await this.SendRequest(url, shipStationOrderTemp);
+                        _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.State}'='{shipStationOrderTemp.OrderStatus}'");
+                        //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+                        Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
+                        //Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
+
+                        _context.Vtex.Logger.Info("CreateUpdateOrder", shipStationOrderTemp.OrderNumber, JsonConvert.SerializeObject(shipStationOrderTemp));
+                    }
                 }
+
+                //_context.Vtex.Logger.Info("CreateUpdateOrder", createUpdateOrderRequest.OrderNumber, $"Paid={createUpdateOrderRequest.AmountPaid} (items={itemsTotal} tax={totalTax} shippingTax={shippingTax} shippingTotal={shippingTotal})");
+                //_context.Vtex.Logger.Info("CreateUpdateOrder", createUpdateOrderRequest.OrderNumber, JsonConvert.SerializeObject(createUpdateOrderRequest));
+
+                //if (createUpdateOrderRequest.Items.Count > 0)
+                //{
+                //    responseWrapper = await this.SendRequest(url, createUpdateOrderRequest);
+                //    _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.State}'='{createUpdateOrderRequest.OrderStatus}'");
+                //    //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+                //    Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
+                //    //Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
+                //}
+                //else
+                //{
+                //    responseWrapper = new ResponseWrapper
+                //    {
+                //        IsSuccess = false,
+                //        Message = "No Ship Items"
+                //    };
+                //}
             }
 
             return responseWrapper.IsSuccess;
@@ -506,7 +631,7 @@ namespace ShipStation.Services
         public async Task<CreateWarehouseResponse> CreateWarehouse(CreateWarehouseRequest createWarehouseRequest)
         {
             CreateWarehouseResponse createWarehouseResponse = null;
-            string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.WAREHOUSES}/{ShipStationConstants.API.CREATRE_WAREHOUSE}";
+            string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.WAREHOUSES}/{ShipStationConstants.API.CREATE_WAREHOUSE}";
             ResponseWrapper responseWrapper = await this.SendRequest(url, createWarehouseRequest);
             Console.WriteLine($"CreateWarehouse '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
             _context.Vtex.Logger.Info("CreateWarehouse", null, JsonConvert.SerializeObject(responseWrapper));
@@ -521,6 +646,21 @@ namespace ShipStation.Services
             }
 
             return createWarehouseResponse;
+        }
+
+        public async Task<List<ListWarehousesResponse>> ListWarehouses()
+        {
+            List<ListWarehousesResponse> response = null;
+            string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.WAREHOUSES}";
+            ResponseWrapper responseWrapper = await this.GetRequest(url);
+            Console.WriteLine($"ListWarehouses '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            _context.Vtex.Logger.Info("ListWarehouses", null, JsonConvert.SerializeObject(responseWrapper));
+            if (responseWrapper.IsSuccess)
+            {
+                response = JsonConvert.DeserializeObject<List<ListWarehousesResponse>>(responseWrapper.ResponseText);
+            }
+
+            return response;
         }
     }
 }

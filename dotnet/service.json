@@ -40,6 +40,14 @@
       "path": "/ship-station/list-all-docks",
       "public": true
     },
+    "listAllWarehouses": {
+      "path": "/ship-station/list-all-warehouses",
+      "public": true
+    },
+    "listWarehouses": {
+      "path": "/ship-station/list-warehouses",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true
