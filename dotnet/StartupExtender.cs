@@ -23,6 +23,7 @@ namespace Vtex
             services.AddSingleton<IVtexAPIService, VtexAPIService>();
             services.AddHttpContextAccessor();
             services.AddHttpClient();
+            services.AddMemoryCache();
         }
 
         // This method is called inside Startup.Configure() before calling app.UseRouting()

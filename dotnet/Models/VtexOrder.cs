@@ -395,7 +395,7 @@ namespace ShipStation.Models
         public object ModalType { get; set; }
 
         [JsonProperty("parentItemIndex")]
-        public object ParentItemIndex { get; set; }
+        public int? ParentItemIndex { get; set; }
 
         [JsonProperty("parentAssemblyBinding")]
         public object ParentAssemblyBinding { get; set; }
@@ -548,7 +548,7 @@ namespace ShipStation.Models
         public string Name { get; set; }
 
         [JsonProperty("rate")]
-        public double Rate { get; set; }
+        public double? Rate { get; set; }
 
         [JsonProperty("value")]
         public long Value { get; set; }

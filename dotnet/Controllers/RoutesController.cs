@@ -179,6 +179,23 @@
             return Json(await _shipStationAPIService.ListWarehouses());
         }
 
+        public async Task<IActionResult> ProcessOrder()
+        {
+            bool success = false;
+            ActionResult status = BadRequest();
+            if ("post".Equals(HttpContext.Request.Method, StringComparison.OrdinalIgnoreCase))
+            {
+                string bodyAsText = await new System.IO.StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+
+                VtexOrder vtexOrder = JsonConvert.DeserializeObject<VtexOrder>(bodyAsText);
+                success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+
+                status = success ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            return status;
+        }
+
         public string PrintHeaders()
         {
             string headers = "--->>> Headers <<<---\n";

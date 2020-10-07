@@ -267,17 +267,18 @@ namespace ShipStation.Services
                             if(success)
                             {
                                 //success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                var response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                Console.WriteLine($"SetOrderStatus [{response}]");
                             }
                             break;
                         //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
                         case ShipStationConstants.VtexOrderStatus.Cancel:
                         //case ShipStationConstants.VtexOrderStatus.Handling:
                         //case ShipStationConstants.VtexOrderStatus.Invoice:
-                        case ShipStationConstants.VtexOrderStatus.Invoiced:
-                        case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
-                        case ShipStationConstants.VtexOrderStatus.OrderCreated:
-                        case ShipStationConstants.VtexOrderStatus.PaymentPending:
+                        //case ShipStationConstants.VtexOrderStatus.Invoiced:
+                        //case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
+                        //case ShipStationConstants.VtexOrderStatus.OrderCreated:
+                        //case ShipStationConstants.VtexOrderStatus.PaymentPending:
                             vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
                             success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
                             break;
