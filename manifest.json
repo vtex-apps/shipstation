@@ -20,7 +20,7 @@
       },
       "storeName": {
         "title": "Store Name",
-        "description": "ShipStation Store Name",
+        "description": "ShipStation Store Name (optional)",
         "type": "string"
       },
       "weightUnit": {
