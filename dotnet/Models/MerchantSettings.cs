@@ -8,6 +8,7 @@ namespace ShipStation.Models
     {
         public string ApiKey { get; set; }
         public string ApiSecret { get; set; }
+        public string StoreName { get; set; }
         //public string AppKey { get; set; }
         //public string AppToken { get; set; }
         public string WeightUnit { get; set; }

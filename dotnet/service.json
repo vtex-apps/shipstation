@@ -48,6 +48,10 @@
       "path": "/ship-station/list-warehouses",
       "public": true
     },
+    "listStores": {
+      "path": "/ship-station/list-stores",
+      "public": true
+    },
     "processOrder": {
       "path": "/ship-station/process-order",
       "public": true

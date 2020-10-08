@@ -550,6 +550,18 @@ namespace ShipStation.Services
                     }
                 }
 
+                string storeName = merchantSettings.StoreName;
+                Console.WriteLine($"    Store Name = {storeName}    ");
+                if (!string.IsNullOrEmpty(storeName))
+                {
+                    long? storeId = await this.GetStoreIdByName(storeName);
+                    if (storeId != null)
+                    {
+                        createUpdateOrderRequest.AdvancedOptions.StoreId = (long)storeId;
+                        Console.WriteLine($"    createUpdateOrderRequest.AdvancedOptions.StoreId = {createUpdateOrderRequest.AdvancedOptions.StoreId}");
+                    }
+                }
+
                 createUpdateOrderRequest.AmountPaid = ToDollar(itemsTotal + totalTax + shippingTax + shippingTotal);
                 createUpdateOrderRequest.ShippingAmount = ToDollar(shippingTotal);
                 createUpdateOrderRequest.TaxAmount = ToDollar(totalTax);
@@ -767,6 +779,50 @@ namespace ShipStation.Services
             }
 
             return response;
+        }
+
+        public async Task<List<ListStoresResponse>> ListStores()
+        {
+            List<ListStoresResponse> response = null;
+            string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.STORES}";
+            ResponseWrapper responseWrapper = await this.GetRequest(url);
+            Console.WriteLine($"ListStores '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            _context.Vtex.Logger.Info("ListStores", null, JsonConvert.SerializeObject(responseWrapper));
+            if (responseWrapper.IsSuccess)
+            {
+                response = JsonConvert.DeserializeObject<List<ListStoresResponse>>(responseWrapper.ResponseText);
+            }
+
+            return response;
+        }
+
+        public async Task<long?> GetStoreIdByName(string storeName)
+        {
+            long? storeId = null;
+
+            if(!string.IsNullOrEmpty(storeName))
+            {
+                Console.WriteLine($"Merchant Test Store '{storeName}'");
+                List<ListStoresResponse> listStoresResponses = await _shipStationRepository.GetShipStationStores();
+                if(listStoresResponses != null)
+                {
+                    storeId = listStoresResponses.Where(s => s.StoreName.Equals(storeName)).Select(s => s.StoreId).FirstOrDefault();
+                    Console.WriteLine($"storeId 1 '{storeId}'");
+                }
+
+                if(storeId == null)
+                {
+                    listStoresResponses = await this.ListStores();
+                    if(listStoresResponses != null)
+                    {
+                        await _shipStationRepository.SaveShipStationStoreList(listStoresResponses);
+                        storeId = listStoresResponses.Where(s => s.StoreName.Equals(storeName)).Select(s => s.StoreId).FirstOrDefault();
+                        Console.WriteLine($"storeId 2 '{storeId}'");
+                    }
+                }
+            }
+
+            return storeId;
         }
     }
 }

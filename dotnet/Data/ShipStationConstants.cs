@@ -31,6 +31,7 @@ namespace ShipStation.Data
         public const string BUCKET = "ship-station";
         public const string HOOK_PING = "ping";
         public const string WEB_HOOK_NOTIFICATION = "web-hook-notification";
+        public const string STORE_LIST = "store-list";
 
         public class API
         {
@@ -43,6 +44,7 @@ namespace ShipStation.Data
             public const string FULFILLMENTS = "fulfillments";
             public const string WAREHOUSES = "warehouses";
             public const string CREATE_WAREHOUSE = "createwarehouse";
+            public const string STORES = "stores";
         }
 
         public class VtexOrderStatus

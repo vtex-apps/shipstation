@@ -8,5 +8,7 @@ namespace ShipStation.Data
     public interface IShipStationRepository
     {
         Task<MerchantSettings> GetMerchantSettings();
+        Task<List<ListStoresResponse>> GetShipStationStores();
+        Task SaveShipStationStoreList(List<ListStoresResponse> listOfStores);
     }
 }

@@ -61,5 +61,58 @@
 
             return JsonConvert.DeserializeObject<MerchantSettings>(responseContent);
         }
+
+        public async Task<List<ListStoresResponse>> GetShipStationStores()
+        {
+            List<ListStoresResponse> listStoresResponses = null;
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"http://vbase.{this._environmentVariableProvider.Region}.vtex.io/{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}/{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_WORKSPACE_HEADER_NAME]}/buckets/{this._applicationName}/{ShipStationConstants.BUCKET}/files/{ShipStationConstants.STORE_LIST}"),
+            };
+
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            //request.Headers.Add("Cache-Control", "no-cache");
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            Console.WriteLine($"GetShipStationStores {response.StatusCode}:{response.ReasonPhrase}");
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                listStoresResponses = JsonConvert.DeserializeObject<List<ListStoresResponse>>(responseContent);
+            }
+
+            return listStoresResponses;
+        }
+
+        public async Task SaveShipStationStoreList(List<ListStoresResponse> listOfStores)
+        {
+            var jsonSerializedStoreList = JsonConvert.SerializeObject(listOfStores);
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Put,
+                RequestUri = new Uri($"http://vbase.{this._environmentVariableProvider.Region}.vtex.io/{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}/{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_WORKSPACE_HEADER_NAME]}/buckets/{this._applicationName}/{ShipStationConstants.BUCKET}/files/{ShipStationConstants.STORE_LIST}"),
+                Content = new StringContent(jsonSerializedStoreList, Encoding.UTF8, ShipStationConstants.APPLICATION_JSON)
+            };
+
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+
+            Console.WriteLine($"SaveShipStationStoreList {response.StatusCode}:{response.ReasonPhrase}");
+
+            response.EnsureSuccessStatusCode();
+        }
     }
 }

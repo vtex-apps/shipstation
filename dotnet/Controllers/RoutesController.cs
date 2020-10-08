@@ -179,6 +179,12 @@
             return Json(await _shipStationAPIService.ListWarehouses());
         }
 
+        public async Task<IActionResult> ListStores()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            return Json(await _shipStationAPIService.ListStores());
+        }
+
         public async Task<IActionResult> ProcessOrder()
         {
             bool success = false;

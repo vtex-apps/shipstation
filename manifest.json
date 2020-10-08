@@ -18,6 +18,11 @@
         "description": "ShipStation API Secret",
         "type": "string"
       },
+      "storeName": {
+        "title": "Store Name",
+        "description": "ShipStation Store Name",
+        "type": "string"
+      },
       "weightUnit": {
         "title": "Weight Unit",
         "description": "Unit of weight measure",
