@@ -263,13 +263,22 @@ namespace ShipStation.Services
                     {
                         case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
                             vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
-                            success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
-                            if(success)
+                            if (vtexOrder != null)
                             {
-                                //success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                var response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                Console.WriteLine($"SetOrderStatus [{response}]");
+                                MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+                                if (!merchantSettings.MarketplaceOnly ||
+                                    (merchantSettings.MarketplaceOnly && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
+                                {
+                                    success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                                    if (success)
+                                    {
+                                        //success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        var response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        Console.WriteLine($"SetOrderStatus [{response}]");
+                                    }
+                                }
                             }
+
                             break;
                         //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
                         case ShipStationConstants.VtexOrderStatus.Cancel:
@@ -280,7 +289,11 @@ namespace ShipStation.Services
                         //case ShipStationConstants.VtexOrderStatus.OrderCreated:
                         //case ShipStationConstants.VtexOrderStatus.PaymentPending:
                             vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
-                            success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                            //if (vtexOrder != null && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace))
+                            {
+                                success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                            }
+
                             break;
                         default:
                             //Console.WriteLine($"State {hookNotification.State} not implemeted.");

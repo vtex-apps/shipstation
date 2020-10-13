@@ -202,6 +202,13 @@
             return status;
         }
 
+        public async Task<IActionResult> SetupHooks()
+        {
+            bool success = await this._vtexAPIService.CreateOrUpdateHook();
+            string response = await this._shipStationAPIService.SubscribeToWebhook(ShipStationConstants.WebhookEvent.ITEM_SHIP_NOTIFY);
+            return Json($"Vtex Order Hook? {success} - ShipStation Webhook: {response}");
+        }
+
         public string PrintHeaders()
         {
             string headers = "--->>> Headers <<<---\n";

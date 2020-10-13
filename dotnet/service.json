@@ -56,6 +56,10 @@
       "path": "/ship-station/process-order",
       "public": true
     },
+    "setupHooks": {
+      "path": "/ship-station/setup-hooks",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

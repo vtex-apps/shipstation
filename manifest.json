@@ -47,6 +47,11 @@
         "title": "Send Pickup In Store",
         "description": "Send Pickup In Store Orders to ShipStation",
         "type": "boolean"
+      },
+      "marketplaceOnly": {
+        "title": "Marketplace Only",
+        "description": "Only send Marketplace Orders",
+        "type": "boolean"
       }
     }
   },

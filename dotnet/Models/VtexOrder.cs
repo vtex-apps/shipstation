@@ -82,6 +82,9 @@ namespace ShipStation.Models
         [JsonProperty("sellerOrderId")]
         public string SellerOrderId { get; set; }
 
+        [JsonProperty("origin")]
+        public string Origin { get; set; }
+
         [JsonProperty("storeId")]
         public object StoreId { get; set; }
 
@@ -316,19 +319,19 @@ namespace ShipStation.Models
 
     public class Schema
     {
-        [JsonProperty("Line 1")]
+        [JsonProperty("Line 1", NullValueHandling = NullValueHandling.Ignore)]
         public Line1 Line1 { get; set; }
 
-        [JsonProperty("Line 2")]
+        [JsonProperty("Line 2", NullValueHandling = NullValueHandling.Ignore)]
         public Line1 Line2 { get; set; }
 
-        [JsonProperty("Line 3")]
+        [JsonProperty("Line 3", NullValueHandling = NullValueHandling.Ignore)]
         public Line1 Line3 { get; set; }
 
         [JsonProperty("Line 4", NullValueHandling = NullValueHandling.Ignore)]
         public Line1 Line4 { get; set; }
 
-        [JsonProperty("Text Style")]
+        [JsonProperty("Text Style", NullValueHandling = NullValueHandling.Ignore)]
         public Line1 TextStyle { get; set; }
     }
 
@@ -575,7 +578,7 @@ namespace ShipStation.Models
     public class OpenTextField
     {
         [JsonProperty("value")]
-        public object Value { get; set; }
+        public string Value { get; set; }
     }
 
     public class PaymentData
@@ -1041,6 +1044,24 @@ namespace ShipStation.Models
         public string Id { get; set; }
 
         [JsonProperty("inputValues")]
-        public object InputValues { get; set; }
+        public InputValues InputValues { get; set; }
+    }
+
+    public class InputValues
+    {
+        [JsonProperty("Line 1", NullValueHandling = NullValueHandling.Ignore)]
+        public string Line1 { get; set; }
+
+        [JsonProperty("Line 2", NullValueHandling = NullValueHandling.Ignore)]
+        public string Line2 { get; set; }
+
+        [JsonProperty("Line 3", NullValueHandling = NullValueHandling.Ignore)]
+        public string Line3 { get; set; }
+
+        [JsonProperty("Line 4", NullValueHandling = NullValueHandling.Ignore)]
+        public string Line4 { get; set; }
+
+        [JsonProperty("Text Style", NullValueHandling = NullValueHandling.Ignore)]
+        public string TextStyle { get; set; }
     }
 }

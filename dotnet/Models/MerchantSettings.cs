@@ -14,5 +14,6 @@ namespace ShipStation.Models
         public string WeightUnit { get; set; }
         public bool SplitShipmentByLocation { get; set; }
         public bool SendPickupInStore { get; set; }
+        public bool MarketplaceOnly { get; set; }
     }
 }

@@ -101,6 +101,44 @@ namespace ShipStation.Services
             return status;
         }
 
+        //private async Task<string> FormatInputValues(InputValues inputValues)
+        //{
+        //    StringBuilder sb = new StringBuilder();
+        //    if (!string.IsNullOrEmpty(inputValues.Line1))
+        //        sb.AppendLine($"1:{inputValues.Line1}");
+        //    if (!string.IsNullOrEmpty(inputValues.Line2))
+        //        sb.AppendLine($"2:{inputValues.Line2}");
+        //    if (!string.IsNullOrEmpty(inputValues.Line3))
+        //        sb.AppendLine($"3:{inputValues.Line3}");
+        //    if (!string.IsNullOrEmpty(inputValues.Line4))
+        //        sb.AppendLine($"4:{inputValues.Line4}");
+        //    if (!string.IsNullOrEmpty(inputValues.TextStyle))
+        //        sb.AppendLine($"Text:{inputValues.TextStyle}");
+
+        //    return sb.ToString();
+        //}
+
+        private async Task<List<Option>> FormatInputValues(InputValues inputValues)
+        {
+            List<Option> options = new List<Option>();
+            Option option = null;
+            option = new Option { Name = "Line 1", Value = inputValues.Line1 };
+            options.Add(option);
+            option = new Option { Name = "Line 2", Value = inputValues.Line2 };
+            options.Add(option);
+            option = new Option { Name = "Line 3", Value = inputValues.Line3 };
+            options.Add(option);
+            option = new Option { Name = "Line 4", Value = inputValues.Line4 };
+            options.Add(option);
+            if (!string.IsNullOrEmpty(inputValues.TextStyle))
+            {
+                option = new Option { Name = "Text", Value = inputValues.TextStyle };
+                options.Add(option);
+            }
+
+            return options;
+        }
+
         private async Task<ResponseWrapper> SendRequest(string url, object requestObject)
         {
             ResponseWrapper responseWrapper = null;
@@ -261,7 +299,7 @@ namespace ShipStation.Services
                 //createUpdateOrderRequest.Confirmation = ShipStationConstants.ShipStationConfirmation.None;
                 createUpdateOrderRequest.CustomerEmail = vtexOrder.ClientProfileData.Email;
                 //createUpdateOrderRequest.CustomerId = 0;  // read-only
-                createUpdateOrderRequest.CustomerNotes = null;
+                createUpdateOrderRequest.CustomerNotes = vtexOrder?.OpenTextField?.Value;
                 createUpdateOrderRequest.CustomerUsername = vtexOrder.ClientProfileData.Email;
                 createUpdateOrderRequest.Dimensions = new Dimensions
                 {
@@ -417,13 +455,9 @@ namespace ShipStation.Services
 
                         foreach (ItemAssembly assembly in item.Assemblies)
                         {
-                            Option option = new Option
-                            {
-                                Name = assembly.Id,
-                                Value = JsonConvert.SerializeObject(assembly.InputValues)
-                            };
-
+                            Option option = new Option { Name = assembly.Id, Value = string.Empty };
                             orderItem.Options.Add(option);
+                            orderItem.Options.AddRange(await this.FormatInputValues(assembly.InputValues));
                         }
 
                         if(item.ParentItemIndex != null)
@@ -434,28 +468,26 @@ namespace ShipStation.Services
                             // Copy monogramming to parent item
                             foreach (ItemAssembly assembly in item.Assemblies)
                             {
-                                Option option = new Option
-                                {
-                                    Name = assembly.Id,
-                                    Value = JsonConvert.SerializeObject(assembly.InputValues)
-                                };
+                                Option option = new Option { Name = assembly.Id, Value = string.Empty };
+                                List<Option> options = new List<Option> { option };
+                                options.AddRange(await this.FormatInputValues(assembly.InputValues));
 
                                 if (optionsToUpdate.Keys.Contains(parentItemIndex))
                                 {
                                     if (optionsToUpdate[parentItemIndex] != null)
                                     {
-                                        optionsToUpdate[parentItemIndex].Add(option);
+                                        optionsToUpdate[parentItemIndex].AddRange(options);
                                     }
                                     else
                                     {
                                         optionsToUpdate[parentItemIndex] = new List<Option>();
-                                        optionsToUpdate[parentItemIndex].Add(option);
+                                        optionsToUpdate[parentItemIndex].AddRange(options);
                                     }
                                 }
                                 else
                                 {
                                     optionsToUpdate.Add(parentItemIndex, new List<Option>());
-                                    optionsToUpdate[parentItemIndex].Add(option);
+                                    optionsToUpdate[parentItemIndex].AddRange(options);
                                 }
                             }
                         }
