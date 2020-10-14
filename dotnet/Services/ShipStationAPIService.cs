@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Vtex.Api.Context;
 using System.Reflection;
 using Microsoft.Extensions.Caching.Memory;
+using System.Text.RegularExpressions;
 
 namespace ShipStation.Services
 {
@@ -48,6 +49,19 @@ namespace ShipStation.Services
                 $"{this._environmentVariableProvider.ApplicationVendor}.{this._environmentVariableProvider.ApplicationName}";
         }
 
+        private Regex invalidXMLChars = new Regex(@"(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFEFF\uFFFE\uFFFF]", RegexOptions.Compiled);
+
+        private string CleanString(string unClean)
+        {
+            string retval = string.Empty;
+            if (!string.IsNullOrWhiteSpace(unClean))
+            {
+                retval = invalidXMLChars.Replace(unClean, "");
+            }
+
+            return retval;
+        }
+
         private double ToDollar(long asPennies)
         {
             return (double)asPennies / 100;
@@ -59,7 +73,6 @@ namespace ShipStation.Services
             switch(orderStatus)
             {
                 case ShipStationConstants.VtexOrderStatus.Handling:
-                case ShipStationConstants.VtexOrderStatus.Invoiced:
                 case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
                 case ShipStationConstants.VtexOrderStatus.StartHanding:
                 case ShipStationConstants.VtexOrderStatus.PaymentApproved:
@@ -86,6 +99,7 @@ namespace ShipStation.Services
                 case ShipStationConstants.VtexOrderStatus.PaymentPending:
                     status = ShipStationConstants.ShipStationOrderStatus.AwaitingPayment;
                     break;
+                case ShipStationConstants.VtexOrderStatus.Invoiced:
                 case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
                 case ShipStationConstants.VtexOrderStatus.OrderCompleted:
                     status = ShipStationConstants.ShipStationOrderStatus.Shipped;
@@ -96,7 +110,7 @@ namespace ShipStation.Services
                     break;
             }
 
-            Console.WriteLine($"-----> Vtex status = '{orderStatus}' ShipStation Status = '{status}' <-----");
+            //Console.WriteLine($"-----> Vtex status = '{orderStatus}' ShipStation Status = '{status}' <-----");
 
             return status;
         }
@@ -122,17 +136,17 @@ namespace ShipStation.Services
         {
             List<Option> options = new List<Option>();
             Option option = null;
-            option = new Option { Name = "Line 1", Value = inputValues.Line1 };
+            option = new Option { Name = "Line 1", Value = CleanString(inputValues.Line1) };
             options.Add(option);
-            option = new Option { Name = "Line 2", Value = inputValues.Line2 };
+            option = new Option { Name = "Line 2", Value = CleanString(inputValues.Line2) };
             options.Add(option);
-            option = new Option { Name = "Line 3", Value = inputValues.Line3 };
+            option = new Option { Name = "Line 3", Value = CleanString(inputValues.Line3) };
             options.Add(option);
-            option = new Option { Name = "Line 4", Value = inputValues.Line4 };
+            option = new Option { Name = "Line 4", Value = CleanString(inputValues.Line4) };
             options.Add(option);
             if (!string.IsNullOrEmpty(inputValues.TextStyle))
             {
-                option = new Option { Name = "Text", Value = inputValues.TextStyle };
+                option = new Option { Name = "Text", Value = CleanString(inputValues.TextStyle) };
                 options.Add(option);
             }
 
@@ -173,6 +187,11 @@ namespace ShipStation.Services
                     IsSuccess = responseMessage.IsSuccessStatusCode,
                     ResponseText = responseContent
                 };
+
+                if (!responseWrapper.IsSuccess)
+                {
+                    _context.Vtex.Logger.Info("SendRequest", null, $"Problem Sending Request. Response: '{responseWrapper.ResponseText}' {jsonSerializedRequest}");
+                }
 
                 //Console.WriteLine($"SendRequest [{responseMessage.StatusCode}] {responseContent}");
             }
@@ -299,7 +318,7 @@ namespace ShipStation.Services
                 //createUpdateOrderRequest.Confirmation = ShipStationConstants.ShipStationConfirmation.None;
                 createUpdateOrderRequest.CustomerEmail = vtexOrder.ClientProfileData.Email;
                 //createUpdateOrderRequest.CustomerId = 0;  // read-only
-                createUpdateOrderRequest.CustomerNotes = vtexOrder?.OpenTextField?.Value;
+                createUpdateOrderRequest.CustomerNotes = CleanString(vtexOrder?.OpenTextField?.Value);
                 createUpdateOrderRequest.CustomerUsername = vtexOrder.ClientProfileData.Email;
                 createUpdateOrderRequest.Dimensions = new Dimensions
                 {
@@ -387,10 +406,18 @@ namespace ShipStation.Services
                 long shippingTax = 0L;
                 long shippingTotal = 0L;
                 Dictionary<string, List<Option>> optionsToUpdate = new Dictionary<string, List<Option>>();
+                List<string> marketplaceNames = new List<string>();
                 foreach (VtexOrderItem item in vtexOrder.Items)
                 {
-                    Console.WriteLine($"    ----------  [{item.Id}] '{item.Name}' --------------  ");
+                    //Console.WriteLine($"    ----------  [{item.Id}] '{item.Name}' --------------  ");
                     //LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(item.Id)).FirstOrDefault();
+                    string marketplaceName = vtexOrder.Sellers.Where(i => i.Id.Equals(item.Seller)).Select(s => s.Name).FirstOrDefault();
+                    if(!marketplaceNames.Contains(marketplaceName))
+                    {
+                        marketplaceNames.Add(marketplaceName);
+                    };
+
+                    Console.WriteLine($"    ----------  Marketplace '{marketplaceName}' --------------  ");
                     LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.FirstOrDefault();
                     Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
                     if (!merchantSettings.SendPickupInStore && (sla.PickupStoreInfo.IsPickupStore ?? false))
@@ -426,7 +453,7 @@ namespace ShipStation.Services
                         orderItem.FulfillmentSku = item.SellerSku;
                         orderItem.ImageUrl = item.ImageUrl;
                         orderItem.LineItemKey = item.Id;
-                        orderItem.Name = item.Name;
+                        orderItem.Name = CleanString(item.Name);
                         orderItem.Options = new List<Option>();
 
                         //foreach (PropertyInfo prop in item.AdditionalInfo.GetType().GetProperties())
@@ -449,9 +476,9 @@ namespace ShipStation.Services
                         //    }
                         //}
 
-                        orderItem.Options.Add(new Option { Name = "Brand Id", Value = item.AdditionalInfo.BrandId });
-                        orderItem.Options.Add(new Option { Name = "Brand Name", Value = item.AdditionalInfo.BrandName });
-                        orderItem.Options.Add(new Option { Name = "Categories Ids", Value = item.AdditionalInfo.CategoriesIds });
+                        orderItem.Options.Add(new Option { Name = "Brand Id", Value = CleanString(item.AdditionalInfo.BrandId) });
+                        orderItem.Options.Add(new Option { Name = "Brand Name", Value = CleanString(item.AdditionalInfo.BrandName) });
+                        orderItem.Options.Add(new Option { Name = "Categories Ids", Value = CleanString(item.AdditionalInfo.CategoriesIds) });
 
                         foreach (ItemAssembly assembly in item.Assemblies)
                         {
@@ -462,8 +489,8 @@ namespace ShipStation.Services
 
                         if(item.ParentItemIndex != null)
                         {
-                            orderItem.Adjustment = true;
-                            Console.WriteLine($"item.ParentItemIndex={item.ParentItemIndex} createUpdateOrderRequest.Items.Count={createUpdateOrderRequest.Items.Count}");
+                            //orderItem.Adjustment = true;
+                            //Console.WriteLine($"item.ParentItemIndex={item.ParentItemIndex} createUpdateOrderRequest.Items.Count={createUpdateOrderRequest.Items.Count}");
                             string parentItemIndex = item.ParentItemIndex.ToString();
                             // Copy monogramming to parent item
                             foreach (ItemAssembly assembly in item.Assemblies)
@@ -513,7 +540,7 @@ namespace ShipStation.Services
                             if (deliveryIds != null)
                             {
                                 warehouseId = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
-                                Console.WriteLine($"--------------------------------->     Setting Warehouse Id to '{warehouseId}'");
+                                //Console.WriteLine($"--------------------------------->     Setting Warehouse Id to '{warehouseId}'");
                             }
                         }
 
@@ -542,7 +569,7 @@ namespace ShipStation.Services
                                 splitItemsTotal[warehouseId].ShippingAmount += orderItem.ShippingAmount ?? 0D;
                                 splitItemsTotal[warehouseId].TaxAmount += orderItem.TaxAmount ?? 0D;
                                 splitItemsTotal[warehouseId].AmountPaid += ((orderItem.UnitPrice * orderItem.Quantity) + (orderItem.ShippingAmount ?? 0D) + (orderItem.TaxAmount ?? 0D) + ToDollar(sla.Tax));
-                                Console.WriteLine($"1:{warehouseId}: Amounts= {splitItemsTotal[warehouseId].ShippingAmount} {splitItemsTotal[warehouseId].TaxAmount} {splitItemsTotal[warehouseId].AmountPaid}");
+                                //Console.WriteLine($"1:{warehouseId}: Amounts= {splitItemsTotal[warehouseId].ShippingAmount} {splitItemsTotal[warehouseId].TaxAmount} {splitItemsTotal[warehouseId].AmountPaid}");
                             }
                             else
                             {
@@ -552,7 +579,8 @@ namespace ShipStation.Services
                                     ShippingAmount = orderItem.ShippingAmount ?? 0D,
                                     TaxAmount = orderItem.TaxAmount ?? 0D
                                 };
-                                Console.WriteLine($"2:{warehouseId}: Amounts= {splitItemsTotal[warehouseId].ShippingAmount} {splitItemsTotal[warehouseId].TaxAmount} {splitItemsTotal[warehouseId].AmountPaid}");
+
+                                //Console.WriteLine($"2:{warehouseId}: Amounts= {splitItemsTotal[warehouseId].ShippingAmount} {splitItemsTotal[warehouseId].TaxAmount} {splitItemsTotal[warehouseId].AmountPaid}");
                             }
                         }
                         else
@@ -583,14 +611,23 @@ namespace ShipStation.Services
                 }
 
                 string storeName = merchantSettings.StoreName;
-                Console.WriteLine($"    Store Name = {storeName}    ");
+                //Console.WriteLine($"    Store Name = {storeName}    ");
                 if (!string.IsNullOrEmpty(storeName))
                 {
                     long? storeId = await this.GetStoreIdByName(storeName);
                     if (storeId != null)
                     {
                         createUpdateOrderRequest.AdvancedOptions.StoreId = (long)storeId;
-                        Console.WriteLine($"    createUpdateOrderRequest.AdvancedOptions.StoreId = {createUpdateOrderRequest.AdvancedOptions.StoreId}");
+                        //Console.WriteLine($"    Storename '{storeName}' StoreId = {createUpdateOrderRequest.AdvancedOptions.StoreId}");
+                    }
+                }
+                else if(marketplaceNames.Count == 1)
+                {
+                    long? storeId = await this.GetStoreIdByName(marketplaceNames[0]);
+                    if (storeId != null)
+                    {
+                        createUpdateOrderRequest.AdvancedOptions.StoreId = (long)storeId;
+                        //Console.WriteLine($"    Marketplace '{marketplaceNames[0]}' StoreId = {createUpdateOrderRequest.AdvancedOptions.StoreId}");
                     }
                 }
 
@@ -615,7 +652,7 @@ namespace ShipStation.Services
 
                 foreach(string warehouseId in splitItems.Keys)
                 {
-                    Console.WriteLine($"--------------------------------->  Warehouse Id '{warehouseId}' {splitItems[warehouseId].Count} Items.");
+                    //Console.WriteLine($"--------------------------------->  Warehouse Id '{warehouseId}' {splitItems[warehouseId].Count} Items.");
                     ShipStationOrder shipStationOrderTemp = createUpdateOrderRequest;
                     if (!string.IsNullOrEmpty(warehouseId))
                     {
@@ -625,7 +662,7 @@ namespace ShipStation.Services
                         shipStationOrderTemp.TaxAmount = splitItemsTotal[warehouseId].TaxAmount;
 
                         long shipStationWarehouseId = listWarehouses.Where(w => w.WarehouseName.Equals(warehouseId)).Select(w => w.WarehouseId).FirstOrDefault();
-                        Console.WriteLine($"    === shipStationWarehouseId = {shipStationWarehouseId}   === ");
+                        //Console.WriteLine($"    === shipStationWarehouseId = {shipStationWarehouseId}   === ");
                         if (shipStationWarehouseId > 0)
                         {
                             shipStationOrderTemp.AdvancedOptions.WarehouseId = shipStationWarehouseId;
@@ -639,8 +676,8 @@ namespace ShipStation.Services
                         responseWrapper = await this.SendRequest(url, shipStationOrderTemp);
                         _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.State}'='{shipStationOrderTemp.OrderStatus}'");
                         //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
-                        Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
-                        //Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
+                        //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
+                        Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
 
                         _context.Vtex.Logger.Info("CreateUpdateOrder", shipStationOrderTemp.OrderNumber, JsonConvert.SerializeObject(shipStationOrderTemp));
                     }
@@ -834,12 +871,16 @@ namespace ShipStation.Services
 
             if(!string.IsNullOrEmpty(storeName))
             {
-                Console.WriteLine($"Merchant Test Store '{storeName}'");
+                //Console.WriteLine($"Merchant Test Store '{storeName}'");
                 List<ListStoresResponse> listStoresResponses = await _shipStationRepository.GetShipStationStores();
                 if(listStoresResponses != null)
                 {
                     storeId = listStoresResponses.Where(s => s.StoreName.Equals(storeName)).Select(s => s.StoreId).FirstOrDefault();
-                    Console.WriteLine($"storeId 1 '{storeId}'");
+                    //Console.WriteLine($"storeId 1 '{storeId}'");
+                    if(storeId == 0)
+                    {
+                        storeId = null;
+                    }
                 }
 
                 if(storeId == null)
@@ -849,7 +890,7 @@ namespace ShipStation.Services
                     {
                         await _shipStationRepository.SaveShipStationStoreList(listStoresResponses);
                         storeId = listStoresResponses.Where(s => s.StoreName.Equals(storeName)).Select(s => s.StoreId).FirstOrDefault();
-                        Console.WriteLine($"storeId 2 '{storeId}'");
+                        //Console.WriteLine($"storeId 2 '{storeId}'");
                     }
                 }
             }

@@ -363,6 +363,8 @@ namespace ShipStation.Services
 
         public async Task<bool> SetOrderStatus(string orderId, string orderStatus)
         {
+            Console.WriteLine("SetOrderStatus DISABLED!");
+            return true;
             bool success = false;
             var request = new HttpRequestMessage
             {

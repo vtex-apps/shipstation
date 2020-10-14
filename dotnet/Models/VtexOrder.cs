@@ -257,7 +257,7 @@ namespace ShipStation.Models
         public string UserAgent { get; set; }
 
         [JsonProperty("userId")]
-        public Guid UserId { get; set; }
+        public string UserId { get; set; }
     }
 
     public class ItemMetadata

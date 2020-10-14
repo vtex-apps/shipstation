@@ -134,25 +134,6 @@
             return Json(success);
         }
 
-        public async Task<IActionResult> OrderInvoiceNotification(string orderId)
-        {
-            OrderInvoiceNotificationRequest request = new OrderInvoiceNotificationRequest
-            {
-                Courier = "UPS",
-                InvoiceNumber = "inv-01",
-                InvoiceValue = 3095,
-                Items = new System.Collections.Generic.List<InvoiceItem> { new InvoiceItem { Id = "003", Price = 2050, Quantity = 1} },
-                TrackingNumber = "1Z11111",
-                Type = ShipStationConstants.InvoiceType.OUTPUT,
-                IssuanceDate = DateTime.Now.ToString()
-            };
-
-            OrderInvoiceNotificationResponse response = await _vtexAPIService.OrderInvoiceNotification(orderId, request);
-            Response.Headers.Add("Cache-Control", "private");
-
-            return Json(response);
-        }
-
         public async Task<IActionResult> SetOrderStatus(string orderId, string orderStatus)
         {
             bool success = await _vtexAPIService.SetOrderStatus(orderId, orderStatus);
