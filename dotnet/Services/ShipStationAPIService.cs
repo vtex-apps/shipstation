@@ -479,6 +479,13 @@ namespace ShipStation.Services
                         orderItem.Options.Add(new Option { Name = "Brand Id", Value = CleanString(item.AdditionalInfo.BrandId) });
                         orderItem.Options.Add(new Option { Name = "Brand Name", Value = CleanString(item.AdditionalInfo.BrandName) });
                         orderItem.Options.Add(new Option { Name = "Categories Ids", Value = CleanString(item.AdditionalInfo.CategoriesIds) });
+                        if (item.AdditionalInfo.Categories != null)
+                        {
+                            foreach (Category category in item.AdditionalInfo.Categories)
+                            {
+                                orderItem.Options.Add(new Option { Name = category.Id.ToString(), Value = CleanString(category.Name) });
+                            }
+                        }
 
                         foreach (ItemAssembly assembly in item.Assemblies)
                         {

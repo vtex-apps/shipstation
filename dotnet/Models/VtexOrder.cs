@@ -493,6 +493,9 @@ namespace ShipStation.Models
         [JsonProperty("categoriesIds")]
         public string CategoriesIds { get; set; }
 
+        [JsonProperty("categories")]
+        public List<Category> Categories { get; set; }
+
         [JsonProperty("productClusterId")]
         public string ProductClusterId { get; set; }
 
@@ -513,6 +516,15 @@ namespace ShipStation.Models
 
         [JsonProperty("offeringTypeId")]
         public object OfferingTypeId { get; set; }
+    }
+
+    public class Category
+    {
+        [JsonProperty("id")]
+        public long Id { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
     }
 
     public class Dimension

@@ -208,7 +208,7 @@ namespace ShipStation.Services
                 var request = new HttpRequestMessage
                 {
                     Method = HttpMethod.Get,
-                    RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.{ShipStationConstants.ENVIRONMENT}.com.br/api/checkout/pvt/orders/{orderId}")
+                    RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.{ShipStationConstants.ENVIRONMENT}.com.br/api/oms/pvt/orders/{orderId}")
                 };
 
                 request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
@@ -273,8 +273,8 @@ namespace ShipStation.Services
                                     if (success)
                                     {
                                         //success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                        var response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                        Console.WriteLine($"SetOrderStatus [{response}]");
+                                        //var response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        //Console.WriteLine($"SetOrderStatus [{response}]");
                                     }
                                 }
                             }
@@ -365,6 +365,7 @@ namespace ShipStation.Services
         {
             Console.WriteLine("SetOrderStatus DISABLED!");
             return true;
+
             bool success = false;
             var request = new HttpRequestMessage
             {
