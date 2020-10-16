@@ -6,6 +6,7 @@ namespace ShipStation.Services
     public interface IVtexAPIService
     {
         Task<bool> ProcessNotification(HookNotification hookNotification);
+        Task<bool> ProcessNotification(AllStatesNotification allStatesNotification);
         Task<bool> CreateOrUpdateHook();
         Task<VtexOrder> GetOrderInformation(string orderId);
         Task<OrderInvoiceNotificationResponse> OrderInvoiceNotification(string orderId, OrderInvoiceNotificationRequest orderInvoice);

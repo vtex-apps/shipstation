@@ -97,7 +97,7 @@ namespace ShipStation.Services
 
             var jsonSerializedOrderHook = JsonConvert.SerializeObject(orderHook);
             //Console.WriteLine($"Hook = {jsonSerializedOrderHook}");
-            Console.WriteLine($"Url = https://{baseUrl}/{ShipStationConstants.APP_NAME}/{ShipStationConstants.ENDPOINT_KEY}");
+            //Console.WriteLine($"Url = https://{baseUrl}/{ShipStationConstants.APP_NAME}/{ShipStationConstants.ENDPOINT_KEY}");
 
             var request = new HttpRequestMessage
             {
@@ -106,6 +106,7 @@ namespace ShipStation.Services
                 Content = new StringContent(jsonSerializedOrderHook, Encoding.UTF8, ShipStationConstants.APPLICATION_JSON)
             };
 
+            Console.WriteLine($"request url = {request.RequestUri}");
             request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
             string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
             if (authToken != null)
@@ -307,6 +308,76 @@ namespace ShipStation.Services
                     break;
                 default:
                     //Console.WriteLine($"Domain {hookNotification.Domain} not implemeted.");
+                    //_context.Vtex.Logger.Info("ProcessNotification", null, $"Domain {hookNotification.Domain} not implemeted.");
+                    break;
+            }
+
+            return success;
+        }
+
+        public async Task<bool> ProcessNotification(AllStatesNotification allStatesNotification)
+        {
+            bool success = true;
+            VtexOrder vtexOrder = null;
+
+            switch (allStatesNotification.Domain)
+            {
+                case ShipStationConstants.Domain.Fulfillment:
+                    //VtexOrder vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
+                    //success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                    switch (allStatesNotification.CurrentState)
+                    {
+                        case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
+                            vtexOrder = await this.GetOrderInformation(allStatesNotification.OrderId);
+                            if (vtexOrder != null)
+                            {
+                                MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+                                if (!merchantSettings.MarketplaceOnly ||
+                                    (merchantSettings.MarketplaceOnly && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
+                                {
+                                    success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                                    Console.WriteLine($"CreateUpdateOrder returned {success} for order '{allStatesNotification.OrderId}'");
+                                    if (success)
+                                    {
+                                        //success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        //var response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        //Console.WriteLine($"SetOrderStatus [{response}]");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"GetOrderInformation returned Null for order '{allStatesNotification.OrderId}'");
+                            }
+
+                            break;
+                        //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
+                        case ShipStationConstants.VtexOrderStatus.Cancel:
+                            //case ShipStationConstants.VtexOrderStatus.Handling:
+                            //case ShipStationConstants.VtexOrderStatus.Invoice:
+                            //case ShipStationConstants.VtexOrderStatus.Invoiced:
+                            //case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
+                            //case ShipStationConstants.VtexOrderStatus.OrderCreated:
+                            //case ShipStationConstants.VtexOrderStatus.PaymentPending:
+                            vtexOrder = await this.GetOrderInformation(allStatesNotification.OrderId);
+                            //if (vtexOrder != null && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace))
+                            {
+                                success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                            }
+
+                            break;
+                        default:
+                            Console.WriteLine($"State {allStatesNotification.CurrentState} not implemeted.");
+                            //_context.Vtex.Logger.Info("ProcessNotification", null, $"State {hookNotification.State} not implemeted.");
+                            break;
+                    }
+                    break;
+                case ShipStationConstants.Domain.Marketplace:
+                    Console.WriteLine($"Marketplace not implemeted.");
+                    //_context.Vtex.Logger.Info("ProcessNotification", null, $"Marketplace not implemeted.");
+                    break;
+                default:
+                    Console.WriteLine($"Domain {allStatesNotification.Domain} not implemeted.");
                     //_context.Vtex.Logger.Info("ProcessNotification", null, $"Domain {hookNotification.Domain} not implemeted.");
                     break;
             }

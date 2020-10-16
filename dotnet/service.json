@@ -64,7 +64,11 @@
   "events": {
     "onAppsLinked": {
       "sender": "apps",
-      "keys": ["linked"]
+      "keys": [ "linked" ]
+    },
+    "allStates": {
+      "sender": "vtex.orders-broadcast",
+      "topics": [ "order-status-updated" ]
     }
   }
 }

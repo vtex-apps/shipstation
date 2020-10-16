@@ -110,7 +110,7 @@ namespace ShipStation.Services
                     break;
             }
 
-            //Console.WriteLine($"-----> Vtex status = '{orderStatus}' ShipStation Status = '{status}' <-----");
+            Console.WriteLine($"-----> Vtex status = '{orderStatus}' ShipStation Status = '{status}' <-----");
 
             return status;
         }
