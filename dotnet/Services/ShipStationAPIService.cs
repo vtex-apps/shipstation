@@ -110,7 +110,7 @@ namespace ShipStation.Services
                     break;
             }
 
-            Console.WriteLine($"-----> Vtex status = '{orderStatus}' ShipStation Status = '{status}' <-----");
+            //Console.WriteLine($"-----> Vtex status = '{orderStatus}' ShipStation Status = '{status}' <-----");
 
             return status;
         }
@@ -341,7 +341,7 @@ namespace ShipStation.Services
                 createUpdateOrderRequest.OrderDate = vtexOrder.CreationDate;
                 createUpdateOrderRequest.OrderKey = vtexOrder.Sequence;
                 createUpdateOrderRequest.OrderNumber = vtexOrder.OrderId;
-                createUpdateOrderRequest.OrderStatus = await this.GetShipStationOrderStatus(vtexOrder.State);
+                createUpdateOrderRequest.OrderStatus = await this.GetShipStationOrderStatus(vtexOrder.Status);
                 createUpdateOrderRequest.PackageCode = null;
                 if (vtexOrder.ReceiptData != null && vtexOrder.ReceiptData.ReceiptCollection != null)
                 {
