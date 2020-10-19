@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.4] - 2020-10-19
+
+### Changed
+
+- Added Complement field to shipping address
+- Removed Brand Id and Category Id
+
 ## [0.0.3] - 2020-10-16
 
 ### Changed

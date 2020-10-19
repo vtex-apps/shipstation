@@ -40,7 +40,12 @@ namespace service.Controllers
             string bodyAsText = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEndAsync().Result;
             //Console.WriteLine($"[AllStates Notification] : '{bodyAsText}'");
             AllStatesNotification allStatesNotification = JsonConvert.DeserializeObject<AllStatesNotification>(bodyAsText);
-            Console.WriteLine($"ProcessNotification: {_vtexAPIService.ProcessNotification(allStatesNotification).Result}");
+            bool success = _vtexAPIService.ProcessNotification(allStatesNotification).Result;
+            if(!success)
+            {
+                _context.Vtex.Logger.Info("Order Broadcast", null, $"Failed to Process Notification {bodyAsText}");
+                throw new Exception("Failed to Process Notification");
+            }
         }
     }
 }

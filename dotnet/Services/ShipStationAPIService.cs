@@ -387,7 +387,7 @@ namespace ShipStation.Services
                     Residential = vtexOrder.ShippingData.Address.AddressType == "residential",
                     State = vtexOrder.ShippingData.Address.State,
                     Street1 = vtexOrder.ShippingData.Address.Street,
-                    //Street2 = vtexOrder.ShippingData.Address.Number.ToString(),
+                    Street2 = vtexOrder.ShippingData.Address.Complement,
                     //Street3 = vtexOrder.ShippingData.Address.Neighborhood
                 };
 
@@ -476,9 +476,9 @@ namespace ShipStation.Services
                         //    }
                         //}
 
-                        orderItem.Options.Add(new Option { Name = "Brand Id", Value = CleanString(item.AdditionalInfo.BrandId) });
+                        //orderItem.Options.Add(new Option { Name = "Brand Id", Value = CleanString(item.AdditionalInfo.BrandId) });
                         orderItem.Options.Add(new Option { Name = "Brand Name", Value = CleanString(item.AdditionalInfo.BrandName) });
-                        orderItem.Options.Add(new Option { Name = "Categories Ids", Value = CleanString(item.AdditionalInfo.CategoriesIds) });
+                        //orderItem.Options.Add(new Option { Name = "Categories Ids", Value = CleanString(item.AdditionalInfo.CategoriesIds) });
                         if (item.AdditionalInfo.Categories != null)
                         {
                             foreach (Category category in item.AdditionalInfo.Categories)
@@ -681,7 +681,7 @@ namespace ShipStation.Services
                     if (shipStationOrderTemp.Items.Count > 0)
                     {
                         responseWrapper = await this.SendRequest(url, shipStationOrderTemp);
-                        _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.State}'='{shipStationOrderTemp.OrderStatus}'");
+                        _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.Status}'='{shipStationOrderTemp.OrderStatus}'");
                         //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
                         //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
                         Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
