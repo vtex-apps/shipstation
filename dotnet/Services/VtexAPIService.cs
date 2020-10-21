@@ -650,7 +650,7 @@ namespace ShipStation.Services
             if(lastCheck.AddHours(1) < DateTime.Now)
             {
                 sb.AppendLine($"shipDateStart={lastCheck.AddMinutes(10)}");
-                ListShipmentsResponse shipments = await _shipStationAPIService.ListShipments($"shipDateStart={lastCheck.AddMinutes(10)}&includeShipmentItems=true");
+                ListShipmentsResponse shipments = await _shipStationAPIService.ListShipments($"shipDateStart={lastCheck.AddMinutes(-10)}&includeShipmentItems=true");
                 Console.WriteLine($"ListShipmentsResponse pages={shipments.Pages}");
                 if (shipments != null)
                 {

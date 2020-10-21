@@ -672,7 +672,7 @@ namespace ShipStation.Services
                         shipStationOrderTemp.TaxAmount = splitItemsTotal[warehouseId].TaxAmount;
 
                         long shipStationWarehouseId = listWarehouses.Where(w => w.WarehouseName.Equals(warehouseId)).Select(w => w.WarehouseId).FirstOrDefault();
-                        //Console.WriteLine($"    === shipStationWarehouseId = {shipStationWarehouseId}   === ");
+                        Console.WriteLine($"    === shipStationWarehouseId = {shipStationWarehouseId}   === ");
                         if (shipStationWarehouseId > 0)
                         {
                             shipStationOrderTemp.AdvancedOptions.WarehouseId = shipStationWarehouseId;
@@ -850,7 +850,7 @@ namespace ShipStation.Services
             List<ListWarehousesResponse> response = null;
             string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.WAREHOUSES}";
             ResponseWrapper responseWrapper = await this.GetRequest(url);
-            Console.WriteLine($"ListWarehouses '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            //Console.WriteLine($"ListWarehouses '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
             _context.Vtex.Logger.Info("ListWarehouses", null, JsonConvert.SerializeObject(responseWrapper));
             if (responseWrapper.IsSuccess)
             {
