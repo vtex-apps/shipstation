@@ -56,6 +56,18 @@
       "path": "/ship-station/setup-hooks",
       "public": true
     },
+    "listShipments": {
+      "path": "/ship-station/list-shipments",
+      "public": true
+    },
+    "listOrders": {
+      "path": "/ship-station/list-orders",
+      "public": true
+    },
+    "validateShipments": {
+      "path": "/ship-station/validate-shipments",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

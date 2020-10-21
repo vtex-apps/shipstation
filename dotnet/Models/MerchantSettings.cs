@@ -15,5 +15,7 @@ namespace ShipStation.Models
         public bool SplitShipmentByLocation { get; set; }
         public bool SendPickupInStore { get; set; }
         public bool MarketplaceOnly { get; set; }
+        public bool SendItemDetails { get; set; }
+        public bool UpdateOrderStatus { get; set; }
     }
 }

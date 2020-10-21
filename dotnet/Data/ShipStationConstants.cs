@@ -32,6 +32,7 @@ namespace ShipStation.Data
         public const string HOOK_PING = "ping";
         public const string WEB_HOOK_NOTIFICATION = "web-hook-notification";
         public const string STORE_LIST = "store-list";
+        public const string SHIPMENT_CHECK = "shipment-check";
 
         public class API
         {

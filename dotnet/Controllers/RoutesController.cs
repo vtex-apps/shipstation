@@ -52,6 +52,7 @@
         public async Task<IActionResult> WebHookNotification(string hookEvent)
         {
             Console.WriteLine($"--> WebHookNotification '{hookEvent}' <--");
+            //return Ok();
             ActionResult status = BadRequest();
             if ("post".Equals(HttpContext.Request.Method, StringComparison.OrdinalIgnoreCase))
             {
@@ -186,9 +187,36 @@
 
         public async Task<IActionResult> SetupHooks()
         {
-            bool success = await this._vtexAPIService.CreateOrUpdateHook();
+            Response.Headers.Add("Cache-Control", "private");
+            //bool success = await this._vtexAPIService.CreateOrUpdateHook();
             string response = await this._shipStationAPIService.SubscribeToWebhook(ShipStationConstants.WebhookEvent.ITEM_SHIP_NOTIFY);
-            return Json($"Vtex Order Hook? {success} - ShipStation Webhook: {response}");
+            //return Json($"Vtex Order Hook? {success} - ShipStation Webhook: {response}");
+            return Json($"ShipStation Webhook: {response}");
+        }
+
+        public async Task<IActionResult> ListShipments()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            //bool success = await this._vtexAPIService.CreateOrUpdateHook();
+            var response = await this._shipStationAPIService.ListShipments(string.Empty);
+            //return Json($"Vtex Order Hook? {success} - ShipStation Webhook: {response}");
+            return Json(response);
+        }
+
+        public async Task<IActionResult> ListOrders()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            //bool success = await this._vtexAPIService.CreateOrUpdateHook();
+            var response = await this._shipStationAPIService.ListOrders(string.Empty);
+            //return Json($"Vtex Order Hook? {success} - ShipStation Webhook: {response}");
+            return Json(response);
+        }
+
+        public async Task<IActionResult> ValidateShipments()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            var response = await this._vtexAPIService.ValidateShipments();
+            return Json(response);
         }
 
         public string PrintHeaders()

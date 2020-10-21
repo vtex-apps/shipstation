@@ -52,6 +52,16 @@
         "title": "Marketplace Only",
         "description": "Only send Marketplace Orders",
         "type": "boolean"
+      },
+      "sendItemDetails": {
+        "title": "Item Details",
+        "description": "Include Brand Name and Categories",
+        "type": "boolean"
+      },
+      "updateOrderStatus": {
+        "title": "Update Order Status",
+        "description": "Update order status to 'ready for handling' when order has been sent to ShipStation",
+        "type": "boolean"
       }
     }
   },

@@ -14,5 +14,6 @@ namespace ShipStation.Services
         Task<bool> ProcessShipNotification(ListShipmentsResponse shipmentsResponse);
         Task<ListAllDocksResponse> ListAllDocks();
         Task<ListAllWarehousesResponse> ListAllWarehouses();
+        Task<string> ValidateShipments();
     }
 }

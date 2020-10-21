@@ -109,6 +109,9 @@ namespace ShipStation.Models
         [JsonProperty("paymentData")]
         public PaymentData PaymentData { get; set; }
 
+        [JsonProperty("packageAttachment")]
+        public PackageAttachment PackageAttachment { get; set; }
+
         [JsonProperty("clientPreferencesData")]
         public ClientPreferencesData ClientPreferencesData { get; set; }
 
@@ -600,6 +603,82 @@ namespace ShipStation.Models
 
         [JsonProperty("transactions")]
         public List<Transaction> Transactions { get; set; }
+    }
+
+    public class PackageAttachment
+    {
+        [JsonProperty("packages")]
+        public List<Package> Packages { get; set; }
+    }
+
+    public class Package
+    {
+        [JsonProperty("items")]
+        public List<PackageItem> Items { get; set; }
+
+        [JsonProperty("courier")]
+        public string Courier { get; set; }
+
+        [JsonProperty("invoiceNumber")]
+        public string InvoiceNumber { get; set; }
+
+        [JsonProperty("invoiceValue")]
+        public long InvoiceValue { get; set; }
+
+        [JsonProperty("invoiceUrl")]
+        public object InvoiceUrl { get; set; }
+
+        [JsonProperty("issuanceDate")]
+        public DateTimeOffset IssuanceDate { get; set; }
+
+        [JsonProperty("trackingNumber")]
+        public string TrackingNumber { get; set; }
+
+        [JsonProperty("invoiceKey")]
+        public object InvoiceKey { get; set; }
+
+        [JsonProperty("trackingUrl")]
+        public object TrackingUrl { get; set; }
+
+        [JsonProperty("embeddedInvoice")]
+        public string EmbeddedInvoice { get; set; }
+
+        [JsonProperty("type")]
+        public string Type { get; set; }
+
+        [JsonProperty("courierStatus")]
+        public object CourierStatus { get; set; }
+
+        [JsonProperty("cfop")]
+        public object Cfop { get; set; }
+
+        [JsonProperty("restitutions")]
+        public Content Restitutions { get; set; }
+
+        [JsonProperty("volumes")]
+        public long Volumes { get; set; }
+    }
+
+    public class PackageItem
+    {
+        [JsonProperty("itemIndex")]
+        public long ItemIndex { get; set; }
+
+        [JsonProperty("quantity")]
+        public long Quantity { get; set; }
+
+        [JsonProperty("price")]
+        public long Price { get; set; }
+
+        [JsonProperty("description")]
+        public object Description { get; set; }
+
+        [JsonProperty("unitMultiplier")]
+        public long UnitMultiplier { get; set; }
+    }
+
+    public class Content
+    {
     }
 
     public class Transaction

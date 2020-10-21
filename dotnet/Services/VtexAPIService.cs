@@ -271,13 +271,21 @@ namespace ShipStation.Services
                                     (merchantSettings.MarketplaceOnly && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
                                 {
                                     success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
-                                    if (success)
+                                    if (success && merchantSettings.UpdateOrderStatus)
                                     {
-                                        //success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                        //var response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                        //Console.WriteLine($"SetOrderStatus [{response}]");
+                                        //success = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        bool response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        if (!response)
+                                        {
+                                            _context.Vtex.Logger.Info("ProcessNotification", null, $"Failed to set Status to start-handling for order {hookNotification.OrderId}.");
+                                            //Console.WriteLine($"SetOrderStatus [{response}]");
+                                        }
                                     }
                                 }
+                            }
+                            else
+                            {
+                                success = false;
                             }
 
                             break;
@@ -337,16 +345,22 @@ namespace ShipStation.Services
                                 {
                                     success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
                                     Console.WriteLine($"CreateUpdateOrder returned {success} for order '{allStatesNotification.OrderId}'");
-                                    if (success)
+                                    _context.Vtex.Logger.Info("ProcessNotification", null, $"CreateUpdateOrder returned {success} for order '{allStatesNotification.OrderId}'");
+                                    if (success && merchantSettings.UpdateOrderStatus)
                                     {
-                                        //success = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                        //var response = await this.SetOrderStatus(hookNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                        //Console.WriteLine($"SetOrderStatus [{response}]");
+                                        //success = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        bool response = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                        if (!response)
+                                        {
+                                            _context.Vtex.Logger.Info("ProcessNotification", null, $"Failed to set Status to start-handling for order {allStatesNotification.OrderId}.");
+                                            //Console.WriteLine($"SetOrderStatus [{response}]");
+                                        }
                                     }
                                 }
                             }
                             else
                             {
+                                success = false;
                                 Console.WriteLine($"GetOrderInformation returned Null for order '{allStatesNotification.OrderId}'");
                             }
 
@@ -380,6 +394,12 @@ namespace ShipStation.Services
                     Console.WriteLine($"Domain {allStatesNotification.Domain} not implemeted.");
                     //_context.Vtex.Logger.Info("ProcessNotification", null, $"Domain {hookNotification.Domain} not implemeted.");
                     break;
+            }
+
+            string validateShipments = await this.ValidateShipments();
+            if(!string.IsNullOrEmpty(validateShipments))
+            {
+                _context.Vtex.Logger.Info("ValidateShipments", null, validateShipments);
             }
 
             return success;
@@ -434,8 +454,8 @@ namespace ShipStation.Services
 
         public async Task<bool> SetOrderStatus(string orderId, string orderStatus)
         {
-            Console.WriteLine("SetOrderStatus DISABLED!");
-            return true;
+            //Console.WriteLine("SetOrderStatus DISABLED!");
+            //return true;
 
             bool success = false;
             var request = new HttpRequestMessage
@@ -620,6 +640,66 @@ namespace ShipStation.Services
             }
 
             return listAllWarehousesResponse;
+        }
+
+        public async Task<string> ValidateShipments()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            DateTime lastCheck = await _shipStationRepository.GetLastShipmentCheck();
+            if(lastCheck.AddHours(1) < DateTime.Now)
+            {
+                sb.AppendLine($"shipDateStart={lastCheck.AddMinutes(10)}");
+                ListShipmentsResponse shipments = await _shipStationAPIService.ListShipments($"shipDateStart={lastCheck.AddMinutes(10)}&includeShipmentItems=true");
+                Console.WriteLine($"ListShipmentsResponse pages={shipments.Pages}");
+                if (shipments != null)
+                {
+                    sb.AppendLine($"{shipments.Shipments.Count} shipments");
+                    foreach (Shipment shipment in shipments.Shipments)
+                    {
+                        string orderId = shipment.OrderNumber;
+                        sb.AppendLine(orderId);
+                        sb.AppendLine($"items={shipment.ShipmentItems.Count}");
+                        VtexOrder vtexOrder = await this.GetOrderInformation(orderId);
+                        if (vtexOrder != null)
+                        {
+                            string orderState = vtexOrder.Status;
+                            Console.WriteLine($"{orderId} {orderState}");
+                            sb.AppendLine($"{orderId} {orderState}");
+                            if (!orderState.Equals(ShipStationConstants.VtexOrderStatus.Invoiced))
+                            {
+                                bool invoiceExists = vtexOrder.PackageAttachment.Packages.Any(p => p.InvoiceNumber.Equals(shipment.ShipmentId.ToString()));
+                                if (!invoiceExists)
+                                {
+                                    ListShipmentsResponse listShipmentsTemp = new ListShipmentsResponse();
+                                    listShipmentsTemp.Shipments = new List<Shipment>();
+                                    listShipmentsTemp.Shipments.Add(shipment);
+                                    bool success = await this.ProcessShipNotification(listShipmentsTemp);
+                                    sb.AppendLine($"Order {orderId} {success}");
+                                }
+                                else
+                                {
+                                    sb.AppendLine($"invoice {shipment.ShipmentId} exists.");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($" Could not load {orderId}");
+                            sb.AppendLine($"Could not load {orderId}");
+                        }
+                    }
+
+                    await _shipStationRepository.SetLastShipmentCheck(DateTime.Now);
+                }
+            }
+            else
+            {
+                TimeSpan duration = lastCheck.AddHours(1) - DateTime.Now;
+                Console.WriteLine($"Last check at {lastCheck} - {duration.TotalMinutes} minutes until next check.");
+            }
+
+            return sb.ToString();
         }
 
         private long ToCents(double asDollars)

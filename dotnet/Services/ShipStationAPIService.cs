@@ -476,14 +476,17 @@ namespace ShipStation.Services
                         //    }
                         //}
 
-                        //orderItem.Options.Add(new Option { Name = "Brand Id", Value = CleanString(item.AdditionalInfo.BrandId) });
-                        orderItem.Options.Add(new Option { Name = "Brand Name", Value = CleanString(item.AdditionalInfo.BrandName) });
-                        //orderItem.Options.Add(new Option { Name = "Categories Ids", Value = CleanString(item.AdditionalInfo.CategoriesIds) });
-                        if (item.AdditionalInfo.Categories != null)
+                        if (merchantSettings.SendItemDetails)
                         {
-                            foreach (Category category in item.AdditionalInfo.Categories)
+                            //orderItem.Options.Add(new Option { Name = "Brand Id", Value = CleanString(item.AdditionalInfo.BrandId) });
+                            orderItem.Options.Add(new Option { Name = "Brand Name", Value = CleanString(item.AdditionalInfo.BrandName) });
+                            //orderItem.Options.Add(new Option { Name = "Categories Ids", Value = CleanString(item.AdditionalInfo.CategoriesIds) });
+                            if (item.AdditionalInfo.Categories != null)
                             {
-                                orderItem.Options.Add(new Option { Name = category.Id.ToString(), Value = CleanString(category.Name) });
+                                foreach (Category category in item.AdditionalInfo.Categories)
+                                {
+                                    orderItem.Options.Add(new Option { Name = category.Id.ToString(), Value = CleanString(category.Name) });
+                                }
                             }
                         }
 
@@ -797,7 +800,7 @@ namespace ShipStation.Services
             ListShipmentsResponse response = null;
             string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.SHIPMENTS}?{queryPrameters}";
             ResponseWrapper responseWrapper = await this.GetRequest(url);
-            Console.WriteLine($"ListShipments '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            //Console.WriteLine($"ListShipments '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
             _context.Vtex.Logger.Info("ListShipments", null, JsonConvert.SerializeObject(responseWrapper));
             if (responseWrapper.IsSuccess)
             {
