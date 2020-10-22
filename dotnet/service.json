@@ -65,7 +65,7 @@
       "public": true
     },
     "validateShipments": {
-      "path": "/ship-station/validate-shipments",
+      "path": "/ship-station/validate-shipments/:date",
       "public": true
     },
     "printHeaders": {

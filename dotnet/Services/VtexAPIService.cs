@@ -396,12 +396,6 @@ namespace ShipStation.Services
                     break;
             }
 
-            string validateShipments = await this.ValidateShipments();
-            if(!string.IsNullOrEmpty(validateShipments))
-            {
-                _context.Vtex.Logger.Info("ValidateShipments", null, validateShipments);
-            }
-
             return success;
         }
 
@@ -642,61 +636,93 @@ namespace ShipStation.Services
             return listAllWarehousesResponse;
         }
 
-        public async Task<string> ValidateShipments()
+        public async Task<string> ValidateShipments(string date)
         {
             StringBuilder sb = new StringBuilder();
-
-            DateTime lastCheck = await _shipStationRepository.GetLastShipmentCheck();
-            if(lastCheck.AddHours(1) < DateTime.Now)
+            ListShipmentsResponse shipments = await _shipStationAPIService.ListShipments($"shipDateStart={date}&shipDateEnd={date}&includeShipmentItems=true");
+            Console.WriteLine($"ListShipmentsResponse pages={shipments.Pages}");
+            if (shipments != null)
             {
-                sb.AppendLine($"shipDateStart={lastCheck.AddMinutes(10)}");
-                ListShipmentsResponse shipments = await _shipStationAPIService.ListShipments($"shipDateStart={lastCheck.AddMinutes(-10)}&includeShipmentItems=true");
-                Console.WriteLine($"ListShipmentsResponse pages={shipments.Pages}");
-                if (shipments != null)
+                sb.AppendLine($"{shipments.Shipments.Count} shipments");
+                foreach (Shipment shipment in shipments.Shipments)
                 {
-                    sb.AppendLine($"{shipments.Shipments.Count} shipments");
-                    foreach (Shipment shipment in shipments.Shipments)
+                    string orderId = shipment.OrderNumber;
+                    sb.AppendLine(orderId);
+                    sb.AppendLine($"items={shipment.ShipmentItems.Count}");
+                    VtexOrder vtexOrder = await this.GetOrderInformation(orderId);
+                    if (vtexOrder != null)
                     {
-                        string orderId = shipment.OrderNumber;
-                        sb.AppendLine(orderId);
-                        sb.AppendLine($"items={shipment.ShipmentItems.Count}");
-                        VtexOrder vtexOrder = await this.GetOrderInformation(orderId);
-                        if (vtexOrder != null)
+                        string orderState = vtexOrder.Status;
+                        Console.WriteLine($"{orderId} {orderState}");
+                        sb.AppendLine($"{orderId} {orderState}");
+                        if (!orderState.Equals(ShipStationConstants.VtexOrderStatus.Invoiced))
                         {
-                            string orderState = vtexOrder.Status;
-                            Console.WriteLine($"{orderId} {orderState}");
-                            sb.AppendLine($"{orderId} {orderState}");
-                            if (!orderState.Equals(ShipStationConstants.VtexOrderStatus.Invoiced))
+                            bool invoiceExists = vtexOrder.PackageAttachment.Packages.Any(p => p.InvoiceNumber.Equals(shipment.ShipmentId.ToString()));
+                            if (!invoiceExists)
                             {
-                                bool invoiceExists = vtexOrder.PackageAttachment.Packages.Any(p => p.InvoiceNumber.Equals(shipment.ShipmentId.ToString()));
-                                if (!invoiceExists)
-                                {
-                                    ListShipmentsResponse listShipmentsTemp = new ListShipmentsResponse();
-                                    listShipmentsTemp.Shipments = new List<Shipment>();
-                                    listShipmentsTemp.Shipments.Add(shipment);
-                                    bool success = await this.ProcessShipNotification(listShipmentsTemp);
-                                    sb.AppendLine($"Order {orderId} {success}");
-                                }
-                                else
-                                {
-                                    sb.AppendLine($"invoice {shipment.ShipmentId} exists.");
-                                }
+                                ListShipmentsResponse listShipmentsTemp = new ListShipmentsResponse();
+                                listShipmentsTemp.Shipments = new List<Shipment>();
+                                listShipmentsTemp.Shipments.Add(shipment);
+                                bool success = await this.ProcessShipNotification(listShipmentsTemp);
+                                sb.AppendLine($"Order {orderId} {success}");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"invoice {shipment.ShipmentId} exists.");
                             }
                         }
-                        else
-                        {
-                            Console.WriteLine($" Could not load {orderId}");
-                            sb.AppendLine($"Could not load {orderId}");
-                        }
                     }
-
-                    await _shipStationRepository.SetLastShipmentCheck(DateTime.Now);
+                    else
+                    {
+                        Console.WriteLine($" Could not load {orderId}");
+                        sb.AppendLine($"Could not load {orderId}");
+                    }
                 }
             }
-            else
+
+            return sb.ToString();
+        }
+
+        public async Task<string> ValidateOrderShipments(string orderId)
+        {
+            StringBuilder sb = new StringBuilder();
+            ListShipmentsResponse shipments = await _shipStationAPIService.ListShipments($"orderNumber={orderId}&includeShipmentItems=true");
+            Console.WriteLine($"ListShipmentsResponse pages={shipments.Pages}");
+            if (shipments != null)
             {
-                TimeSpan duration = lastCheck.AddHours(1) - DateTime.Now;
-                Console.WriteLine($"Last check at {lastCheck} - {duration.TotalMinutes} minutes until next check.");
+                sb.AppendLine($"{shipments.Shipments.Count} shipments");
+                foreach (Shipment shipment in shipments.Shipments)
+                {
+                    sb.AppendLine($"items={shipment.ShipmentItems.Count}");
+                    VtexOrder vtexOrder = await this.GetOrderInformation(orderId);
+                    if (vtexOrder != null)
+                    {
+                        string orderState = vtexOrder.Status;
+                        Console.WriteLine($"{orderId} {orderState}");
+                        sb.AppendLine($"{orderId} {orderState}");
+                        if (!orderState.Equals(ShipStationConstants.VtexOrderStatus.Invoiced))
+                        {
+                            bool invoiceExists = vtexOrder.PackageAttachment.Packages.Any(p => p.InvoiceNumber.Equals(shipment.ShipmentId.ToString()));
+                            if (!invoiceExists)
+                            {
+                                ListShipmentsResponse listShipmentsTemp = new ListShipmentsResponse();
+                                listShipmentsTemp.Shipments = new List<Shipment>();
+                                listShipmentsTemp.Shipments.Add(shipment);
+                                bool success = await this.ProcessShipNotification(listShipmentsTemp);
+                                sb.AppendLine($"Order {orderId} {success}");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"invoice {shipment.ShipmentId} exists.");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($" Could not load {orderId}");
+                        sb.AppendLine($"Could not load {orderId}");
+                    }
+                }
             }
 
             return sb.ToString();

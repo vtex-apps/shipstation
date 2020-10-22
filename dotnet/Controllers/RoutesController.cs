@@ -52,7 +52,7 @@
         public async Task<IActionResult> WebHookNotification(string hookEvent)
         {
             Console.WriteLine($"--> WebHookNotification '{hookEvent}' <--");
-            //return Ok();
+            //return BadRequest();
             ActionResult status = BadRequest();
             if ("post".Equals(HttpContext.Request.Method, StringComparison.OrdinalIgnoreCase))
             {
@@ -63,6 +63,7 @@
                 string resource = await _shipStationAPIService.ProcessResourceUrl(webhookNotification.ResourceUrl);
                 //Console.WriteLine($"--> RESOURCE {resource} <--");
                 _context.Vtex.Logger.Info("WebHookNotification", webhookNotification.ResourceUrl, resource);
+                bool proccessed = false;
                 switch (hookEvent)
                 {
                     case ShipStationConstants.WebhookEvent.ITEM_ORDER_NOTIFY:
@@ -72,11 +73,14 @@
                     case ShipStationConstants.WebhookEvent.ITEM_SHIP_NOTIFY:
                     //case ShipStationConstants.WebhookEvent.SHIP_NOTIFY:
                         ListShipmentsResponse shipmentsResponse = JsonConvert.DeserializeObject<ListShipmentsResponse>(resource);
-                        bool proccessed = await _vtexAPIService.ProcessShipNotification(shipmentsResponse);
+                        proccessed = await _vtexAPIService.ProcessShipNotification(shipmentsResponse);
                         break;
                 }
 
-                status = Ok();
+                if (proccessed)
+                {
+                    status = Ok();
+                }
             }
 
             Response.Headers.Add("Cache-Control", "private");
@@ -131,9 +135,10 @@
         {
             VtexOrder vtexOrder = await _vtexAPIService.GetOrderInformation(orderId);
             bool success = await _shipStationAPIService.CreateUpdateOrder(vtexOrder);
+            string shipments = await _vtexAPIService.ValidateOrderShipments(orderId);
             Response.Headers.Add("Cache-Control", "private");
 
-            return Json(success);
+            return Json($"Sent to ShipStation? {success} Shipments: {shipments}");
         }
 
         public async Task<IActionResult> SetOrderStatus(string orderId, string orderStatus)
@@ -212,10 +217,12 @@
             return Json(response);
         }
 
-        public async Task<IActionResult> ValidateShipments()
+        public async Task<IActionResult> ValidateShipments(string date)
         {
             Response.Headers.Add("Cache-Control", "private");
-            var response = await this._vtexAPIService.ValidateShipments();
+            DateTime dt = DateTime.Parse(date);
+            date = dt.Date.ToString("d");
+            var response = await this._vtexAPIService.ValidateShipments(date);
             return Json(response);
         }
 

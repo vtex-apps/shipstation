@@ -151,7 +151,7 @@
             }
 
             // DEBUG !!!!
-            lastCheck = DateTime.Now.AddHours(-24);
+            lastCheck = DateTime.Now.AddHours(-72);
             // DEBUG !!!!
 
             return lastCheck;
