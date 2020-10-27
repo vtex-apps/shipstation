@@ -64,7 +64,8 @@ namespace ShipStation.Services
 
         private double ToDollar(long asPennies)
         {
-            return (double)asPennies / 100;
+            //Console.WriteLine($"ToDollar: {asPennies} = {(double)asPennies / 100D}");
+            return (double)asPennies / 100D;
         }
 
         private async Task<string> GetShipStationOrderStatus(string orderStatus)
@@ -407,10 +408,9 @@ namespace ShipStation.Services
                 long shippingTotal = 0L;
                 Dictionary<string, List<Option>> optionsToUpdate = new Dictionary<string, List<Option>>();
                 List<string> marketplaceNames = new List<string>();
+                long itemIndex = 0L;
                 foreach (VtexOrderItem item in vtexOrder.Items)
                 {
-                    //Console.WriteLine($"    ----------  [{item.Id}] '{item.Name}' --------------  ");
-                    //LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(item.Id)).FirstOrDefault();
                     string marketplaceName = vtexOrder.Sellers.Where(i => i.Id.Equals(item.Seller)).Select(s => s.Name).FirstOrDefault();
                     if(!marketplaceNames.Contains(marketplaceName))
                     {
@@ -418,7 +418,7 @@ namespace ShipStation.Services
                     };
 
                     Console.WriteLine($"    ----------  Marketplace '{marketplaceName}' --------------  ");
-                    LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.FirstOrDefault();
+                    LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemIndex.Equals(itemIndex)).FirstOrDefault();
                     Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
                     if (!merchantSettings.SendPickupInStore && (sla.PickupStoreInfo.IsPickupStore ?? false))
                     {
@@ -434,11 +434,11 @@ namespace ShipStation.Services
                             {
                                 if (priceTag.IsPercentual ?? false)
                                 {
-                                    itemTax += (long)(item.SellingPrice * item.Quantity * priceTag.RawValue);
+                                    itemTax += (long)(item.SellingPrice * priceTag.RawValue);
                                 }
                                 else
                                 {
-                                    itemTax += priceTag.Value * item.Quantity;
+                                    itemTax += priceTag.Value;
                                 }
                             }
                         }
@@ -618,6 +618,8 @@ namespace ShipStation.Services
 
                         createUpdateOrderRequest.Items.Add(orderItem);
                     }
+
+                    itemIndex++;
                 }
 
                 string storeName = merchantSettings.StoreName;
@@ -641,11 +643,18 @@ namespace ShipStation.Services
                     }
                 }
 
+                long orderTaxTotal = vtexOrder.Totals.Where(t => t.Id.Contains("Tax",StringComparison.InvariantCultureIgnoreCase)).Select(d => d.Value).FirstOrDefault();
+                if(orderTaxTotal != totalTax)
+                {
+                    _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} Order Tax={orderTaxTotal} Item Tax={totalTax}'");
+                }
+
                 createUpdateOrderRequest.AmountPaid = ToDollar(itemsTotal + totalTax + shippingTax + shippingTotal);
                 createUpdateOrderRequest.ShippingAmount = ToDollar(shippingTotal);
                 createUpdateOrderRequest.TaxAmount = ToDollar(totalTax);
+                //createUpdateOrderRequest.TaxAmount = ToDollar(orderTaxTotal);
 
-                foreach(string parentId in optionsToUpdate.Keys)
+                foreach (string parentId in optionsToUpdate.Keys)
                 {
                     createUpdateOrderRequest.Items[int.Parse(parentId)].Options.AddRange(optionsToUpdate[parentId]);
                     foreach (string warehouse in splitItems.Keys)

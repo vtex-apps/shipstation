@@ -1,0 +1,10 @@
+{
+  "section": "orders",
+  "subSection": "inventoryAndShipping",
+  "subSectionItems": [
+    {
+      "labelId": "admin/ship-station.title",
+      "path": "/admin/ship-station/"
+    }
+  ]
+}

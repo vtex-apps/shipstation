@@ -512,8 +512,8 @@ namespace ShipStation.Services
                     foreach (ShipmentItem shipmentItem in shipment.ShipmentItems)
                     {
                         string sku = shipmentItem.Sku;
-                        Console.WriteLine($"Item '{shipmentItem.Name}' {sku} ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
-                        sb.AppendLine($"    Item '{shipmentItem.Name}' {sku} ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
+                        Console.WriteLine($"Item '{shipmentItem.Name}' '{sku}' ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
+                        sb.AppendLine($"Item '{shipmentItem.Name}' '{sku}' ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
 
                         //LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(sku)).FirstOrDefault();
                         //Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
@@ -536,7 +536,7 @@ namespace ShipStation.Services
                         //    }
                         //}
 
-                        long itemPrice = ToCents(shipmentItem.UnitPrice * shipmentItem.Quantity);
+                        long itemPrice = ToCents(shipmentItem.UnitPrice) * shipmentItem.Quantity;
                         long itemTax = ToCents(shipmentItem.TaxAmount ?? 0d);
                         long shippingCost = ToCents(shipmentItem.ShippingAmount ?? 0d);
 
@@ -550,15 +550,16 @@ namespace ShipStation.Services
                         request.Items.Add(invoiceItem);
                         request.InvoiceValue += (itemPrice + itemTax + shippingCost);
                         Console.WriteLine($"request.InvoiceValue = {request.InvoiceValue}");
-                        sb.AppendLine($"        Tax={itemTax} Shipping={shippingCost}");
+                        sb.AppendLine($"{sku}:{ToCents(shipmentItem.UnitPrice)}x{shipmentItem.Quantity}={itemPrice} Tax={itemTax} Shipping={shippingCost}");
                     }
 
+                    sb.AppendLine($"InvoiceValue = {request.InvoiceValue}");
                     // Don't charge more than order total
                     //request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
 
                     OrderInvoiceNotificationResponse response = await this.OrderInvoiceNotification(orderId, request);
                     success = response != null;
-                    sb.AppendLine($"    Response='{JsonConvert.SerializeObject(response)}'");
+                    sb.AppendLine($"Response='{JsonConvert.SerializeObject(response)}'");
                     _context.Vtex.Logger.Info("ProcessShipNotification", orderId, JsonConvert.SerializeObject(request));
                 }
             }
@@ -730,7 +731,7 @@ namespace ShipStation.Services
 
         private long ToCents(double asDollars)
         {
-            return (long)(asDollars * 100);
+            return (long)Math.Round(asDollars * 100);
         }
     }
 }

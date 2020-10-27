@@ -1,0 +1,9 @@
+{
+  "admin.app.ship-station": {
+    "around": ["layout"],
+    "path": "/admin/app/ship-station/"
+  },
+  "layout": {
+    "component": "Admin"
+  }
+}
