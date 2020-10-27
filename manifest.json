@@ -62,6 +62,11 @@
         "title": "Update Order Status",
         "description": "Update order status to 'ready for handling' when order has been sent to ShipStation",
         "type": "boolean"
+      },
+      "brandedReturnsUrl": {
+        "title": "Branded Returns Url",
+        "description": "The auto-generated URL from ShipStation Branded Returns",
+        "type": "string"
       }
     }
   },
