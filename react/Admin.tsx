@@ -1,20 +1,20 @@
 /* eslint-disable padding-line-between-statements */
 /* eslint-disable no-console */
 import React, { FC } from 'react'
-import { useRuntime } from 'vtex.render-runtime'
-import axios from 'axios'
+//import { useRuntime } from 'vtex.render-runtime'
+//import axios from 'axios'
 import {
   Layout,
   PageHeader,
-  Card,
-  Button,
-  ButtonPlain,
-  Divider,
-  Spinner,
+//  Card,
+//  Button,
+//  ButtonPlain,
+//  Divider,
+//  Spinner,
 } from 'vtex.styleguide'
 import { FormattedMessage } from 'react-intl'
 
-import styles from './styles.css'
+//import styles from './styles.css'
 
 //const SETUP_HOOKS_URL = '/ship-station/setup-hooks'
 //const SYNCH_ORDER_URL = '/ship-station/synch-vtex-order/'
