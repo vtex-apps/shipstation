@@ -1,3 +1,4 @@
 {
-  "admin/ship-station.title": "ShipStation"
+  "admin/ship-station.title": "ShipStation",
+  "admin/ship-station.setup-hooks.button": "Create WebHooks"
 }

@@ -77,6 +77,10 @@
     "messages": "1.x",
     "docs": "0.x"
   },
+  "dependencies": {
+    "vtex.styleguide": "9.x",
+    "vtex.apps-graphql": "2.x"
+  },
   "mustUpdateAt": "2018-09-05",
   "scripts": {
     "postreleasy": "vtex publish --verbose"

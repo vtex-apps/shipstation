@@ -8,6 +8,7 @@ namespace ShipStation.Services
     {
         Task<bool> CreateUpdateOrder(VtexOrder vtexOrder);
         Task<string> SubscribeToWebhook(string hookEvent);
+        Task<ListWebhooksResponse> ListWebHooks();
         Task<string> ProcessResourceUrl(string resourceUrl);
         Task<ListOrdersResponse> ListOrders(string queryPrameters);
         Task<ListShipmentsResponse> ListShipments(string queryPrameters);

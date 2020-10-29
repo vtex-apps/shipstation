@@ -11,6 +11,8 @@
     using System.Threading.Tasks;
     using Vtex.Api.Context;
     using System.Web;
+    using System.Collections.Generic;
+    using System.Linq;
 
     public class RoutesController : Controller
     {
@@ -223,6 +225,21 @@
             DateTime dt = DateTime.Parse(date);
             date = dt.Date.ToString("d");
             var response = await this._vtexAPIService.ValidateShipments(date);
+            return Json(response);
+        }
+
+        public async Task<IActionResult> ListWebhooks()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            var response = await this._shipStationAPIService.ListWebHooks();
+            return Json(response);
+        }
+
+        public async Task<IActionResult> ListActiveWebhooks()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            ListWebhooksResponse listWebhooksResponse = await this._shipStationAPIService.ListWebHooks();
+            var response = listWebhooksResponse.Webhooks.Where(w => w.Active).Select(w => w.Name).ToList();
             return Json(response);
         }
 

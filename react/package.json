@@ -1,6 +1,6 @@
 {
   "name": "ship-station",
-  "version": "0.0.22",
+  "version": "0.0.4",
   "scripts": {
     "test": "vtex-test-tools test"
   },
@@ -15,6 +15,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "graphql": "^15.3.0",
-    "react-intl": "^5.0.2"
+    "react-intl": "^5.0.2",
+    "react-apollo": "^3.1.3"
   }
 }

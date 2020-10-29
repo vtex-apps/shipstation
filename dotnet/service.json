@@ -68,6 +68,14 @@
       "path": "/ship-station/validate-shipments/:date",
       "public": true
     },
+    "listWebhooks": {
+      "path": "/ship-station/list-webhooks",
+      "public": true
+    },
+    "listActiveWebhooks": {
+      "path": "/ship-station/list-active-webhooks",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

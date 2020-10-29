@@ -777,6 +777,21 @@ namespace ShipStation.Services
             return response;
         }
 
+        public async Task<ListWebhooksResponse> ListWebHooks()
+        {
+            ListWebhooksResponse response = null;
+            string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.WEBHOOKS}";
+            ResponseWrapper responseWrapper = await this.GetRequest(url);
+            //Console.WriteLine($"ListWarehouses '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            _context.Vtex.Logger.Info("ListWebHooks", null, JsonConvert.SerializeObject(responseWrapper));
+            if (responseWrapper.IsSuccess)
+            {
+                response = JsonConvert.DeserializeObject<ListWebhooksResponse>(responseWrapper.ResponseText);
+            }
+
+            return response;
+        }
+
         public async Task<string> ProcessResourceUrl(string resourceUrl)
         {
             string response = string.Empty;

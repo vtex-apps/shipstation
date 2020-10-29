@@ -1,0 +1,15 @@
+query AppSettings($version: String) {
+  appSettings(app: "vtex.ship-station", version: $version)
+    @context(provider: "vtex.apps-graphql") {
+    apiKey
+	apiSecret
+	storeName
+	weightUnit
+	splitShipmentByLocation
+	sendPickupInStore
+	marketplaceOnly
+	sendItemDetails
+	opdateOrderStatus
+	brandedReturnsUrl
+  }
+}
