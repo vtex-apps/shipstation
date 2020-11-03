@@ -340,20 +340,27 @@ namespace ShipStation.Services
                             if (vtexOrder != null)
                             {
                                 MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
-                                if (!merchantSettings.MarketplaceOnly ||
-                                    (merchantSettings.MarketplaceOnly && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
+                                if (string.IsNullOrEmpty(merchantSettings.ApiKey) || string.IsNullOrEmpty(merchantSettings.ApiSecret))
                                 {
-                                    success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
-                                    Console.WriteLine($"CreateUpdateOrder returned {success} for order '{allStatesNotification.OrderId}'");
-                                    _context.Vtex.Logger.Info("ProcessNotification", null, $"CreateUpdateOrder returned {success} for order '{allStatesNotification.OrderId}'");
-                                    if (success && merchantSettings.UpdateOrderStatus)
+                                    _context.Vtex.Logger.Info("ProcessNotification", null, "Missing Credentials.");
+                                }
+                                else
+                                {
+                                    if (!merchantSettings.MarketplaceOnly ||
+                                        (merchantSettings.MarketplaceOnly && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
                                     {
-                                        //success = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                        bool response = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                        if (!response)
+                                        success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                                        Console.WriteLine($"CreateUpdateOrder returned {success} for order '{allStatesNotification.OrderId}'");
+                                        _context.Vtex.Logger.Info("ProcessNotification", null, $"CreateUpdateOrder returned {success} for order '{allStatesNotification.OrderId}'");
+                                        if (success && merchantSettings.UpdateOrderStatus)
                                         {
-                                            _context.Vtex.Logger.Info("ProcessNotification", null, $"Failed to set Status to start-handling for order {allStatesNotification.OrderId}.");
-                                            //Console.WriteLine($"SetOrderStatus [{response}]");
+                                            //success = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                            bool response = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                            if (!response)
+                                            {
+                                                _context.Vtex.Logger.Info("ProcessNotification", null, $"Failed to set Status to start-handling for order {allStatesNotification.OrderId}.");
+                                                //Console.WriteLine($"SetOrderStatus [{response}]");
+                                            }
                                         }
                                     }
                                 }

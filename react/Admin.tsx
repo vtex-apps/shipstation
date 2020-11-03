@@ -21,7 +21,13 @@ const SETUP_HOOKS_URL = '/ship-station/setup-hooks'
 const initialState = {
   apiKey: '',
   apiSecret: '',
+  storeName: '',
+  brandedReturnsUrl: '',
   splitShipmentByLocation: false,
+  sendPickupInStore: false,
+  marketplaceOnly: false,
+  sendItemDetails: false,
+  updateOrderStatus: false,
   weightUnit: 'pounds',
 }
 
@@ -50,11 +56,17 @@ const ShipStationAdmin: FC = () => {
     const {
       apiKey,
       apiSecret,
+      storeName,
+      brandedReturnsUrl,
       splitShipmentByLocation,
+      sendPickupInStore,
+      marketplaceOnly,
+      sendItemDetails,
+      updateOrderStatus,
       weightUnit,
     } = JSON.parse(data.appSettings?.message || '{}')
 
-    setSettingsState({ apiKey, apiSecret, splitShipmentByLocation, weightUnit })
+      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit })
   }, [data])
 
   // handler to save new settings by executing the 'saveSettings' mutation
@@ -84,7 +96,7 @@ const ShipStationAdmin: FC = () => {
     >
       <div className="mt5">
         <Input
-          label="API Key"
+                  label="ShipStation API Key"
           value={settingsState.apiKey}
           onChange={(e: React.FormEvent<HTMLInputElement>) =>
             setSettingsState({
@@ -96,7 +108,7 @@ const ShipStationAdmin: FC = () => {
       </div>
       <div className="mt5">
         <Input
-          label="API Secret"
+                  label="ShipStation API Secret"
           value={settingsState.apiSecret}
           onChange={(e: React.FormEvent<HTMLInputElement>) =>
             setSettingsState({
@@ -105,6 +117,40 @@ const ShipStationAdmin: FC = () => {
             })
           }
         />
+       </div>
+     <div className="mt5">
+          <Input
+               label="ShipStation Store Name (optional)"
+               value={settingsState.storeName}
+               onChange={(e: React.FormEvent<HTMLInputElement>) =>
+                   setSettingsState({
+                       ...settingsState,
+                       storeName: e.currentTarget.value,
+                   })
+               }
+          />
+      </div>
+      <div className="mt5">
+              <Input
+                  label="ShipStation Branded Returns URL"
+                  value={settingsState.brandedReturnsUrl}
+                  onChange={(e: React.FormEvent<HTMLInputElement>) =>
+                      setSettingsState({
+                          ...settingsState,
+                          brandedReturnsUrl: e.currentTarget.value,
+                      })
+                  }
+              />
+      </div>
+      <div className="mt5">
+              <Dropdown
+                  label="Weight Unit"
+                  options={weightUnitOptions}
+                  value={settingsState.weightUnit}
+                  onChange={(_: any, v: string) =>
+                      setSettingsState({ ...settingsState, weightUnit: v })
+                  }
+              />
       </div>
       <div className="mt5">
         <Toggle
@@ -118,17 +164,59 @@ const ShipStationAdmin: FC = () => {
             })
           }
         />
-      </div>
-      <div className="mt5">
-        <Dropdown
-          label="Weight Unit"
-          options={weightUnitOptions}
-          value={settingsState.weightUnit}
-          onChange={(_: any, v: string) =>
-            setSettingsState({ ...settingsState, weightUnit: v })
-          }
-        />
-      </div>
+          </div>
+          <div className="mt5">
+              <Toggle
+                  label="Send Pickup In Store Orders to ShipStation"
+                  size="large"
+                  checked={settingsState.sendPickupInStore}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          sendPickupInStore: !settingsState.sendPickupInStore,
+                      })
+                  }
+              />
+          </div>
+          <div className="mt5">
+              <Toggle
+                  label="Only send Marketplace Orders"
+                  size="large"
+                  checked={settingsState.marketplaceOnly}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          marketplaceOnly: !settingsState.marketplaceOnly,
+                      })
+                  }
+              />
+          </div>
+          <div className="mt5">
+              <Toggle
+                  label="Include Brand Name and Categories in Item Details"
+                  size="large"
+                  checked={settingsState.sendItemDetails}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          sendItemDetails: !settingsState.sendItemDetails,
+                      })
+                  }
+              />
+          </div>
+          <div className="mt5">
+              <Toggle
+                  label="Update order status to 'ready for handling' when order has been sent to ShipStation"
+                  size="large"
+                  checked={settingsState.updateOrderStatus}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          updateOrderStatus: !settingsState.updateOrderStatus,
+                      })
+                  }
+              />
+          </div>
       <div className="mt5">
         <Button
           variation="primary"
