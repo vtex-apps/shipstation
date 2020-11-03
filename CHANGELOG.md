@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.7] - 2020-11-03
+
+### Changed
+
+- Changed vendor to vtexus
+
 ## [0.0.6] - 2020-11-03
 
 ### Changed
