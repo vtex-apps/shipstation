@@ -1,6 +1,6 @@
 mutation saveAppSettings($version: String, $settings: String) {
   saveAppSettings(
-    app: "vtex.ship-station"
+    app: "vtexus.ship-station"
     version: $version
     settings: $settings
   ) {

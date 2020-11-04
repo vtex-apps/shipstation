@@ -1,5 +1,5 @@
 query AppSettings($version: String) {
-  appSettings(app: "vtex.ship-station", version: $version)
+  appSettings(app: "vtexus.ship-station", version: $version)
     @context(provider: "vtex.apps-graphql") {
     message
   }

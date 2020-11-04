@@ -1,0 +1,21 @@
+{
+  "name": "Shipstation Api",
+    "headline": "An intergration with ShipStation",
+  "overview": "Sends new orders to Shipstation\\nProcesses Shipments made in Shipstation",
+  "features": [
+    "Sends new orders to Shipstation",
+    "Processes Shipments made in Shipstation"
+  ],
+    "additionalInformation": "Additional information",
+  "video": "<https://www.youtube.com/embed/645ASYhJS-Q>",
+  "websiteURL": "<https://www.website.com/en>",
+  "support": {
+      "email": "a@bcd.io"
+      "url": "www....",
+      "phone": +1....
+    },
+  "metricDescription": {
+    "track": "English description for metric track",
+    "notify": "English description for metric notify en-US"
+  }
+}
