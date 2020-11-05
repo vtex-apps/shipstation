@@ -500,74 +500,81 @@ namespace ShipStation.Services
                 if (shipment.ShipmentItems != null)
                 {
                     VtexOrder vtexOrder = await this.GetOrderInformation(orderId);
-                    long orderTotal = vtexOrder.Totals.Sum(t => t.Value);
-                    long shippingTotal = vtexOrder.Totals.Where(t => t.Name == "Shipping").Select(d => d.Value).FirstOrDefault();
-                    long taxTotal = vtexOrder.Totals.Where(t => t.Name == "Tax").Select(d => d.Value).FirstOrDefault();
-
-                    OrderInvoiceNotificationRequest request = new OrderInvoiceNotificationRequest
+                    if (vtexOrder != null)
                     {
-                        Courier = shipment.CarrierCode,
-                        TrackingNumber = shipment.TrackingNumber,
-                        Type = ShipStationConstants.InvoiceType.OUTPUT,
-                        InvoiceNumber = shipment.ShipmentId.ToString(),
-                        InvoiceValue = 0L,
-                        IssuanceDate = shipment.ShipDate.ToString(),
-                        Items = new List<InvoiceItem>(),
-                        TrackingUrl = null
-                    };
+                        long orderTotal = vtexOrder.Totals.Sum(t => t.Value);
+                        long shippingTotal = vtexOrder.Totals.Where(t => t.Name == "Shipping").Select(d => d.Value).FirstOrDefault();
+                        long taxTotal = vtexOrder.Totals.Where(t => t.Name == "Tax").Select(d => d.Value).FirstOrDefault();
 
-                    foreach (ShipmentItem shipmentItem in shipment.ShipmentItems)
-                    {
-                        string sku = shipmentItem.Sku;
-                        Console.WriteLine($"Item '{shipmentItem.Name}' '{sku}' ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
-                        sb.AppendLine($"Item '{shipmentItem.Name}' '{sku}' ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
-
-                        //LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(sku)).FirstOrDefault();
-                        //Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
-
-                        //VtexOrderItem item = vtexOrder.Items.Where(i => i.Id.Equals(shipmentItem.Sku)).FirstOrDefault();
-                        //long itemTax = 0l;
-                        //foreach (PriceTag priceTag in item.PriceTags)
-                        //{
-                        //    string name = priceTag.Name.ToLower();
-                        //    if (name.Contains("tax@") || name.Contains("taxhub@"))
-                        //    {
-                        //        if (priceTag.IsPercentual ?? false)
-                        //        {
-                        //            itemTax += (long)(item.SellingPrice * priceTag.RawValue);
-                        //        }
-                        //        else
-                        //        {
-                        //            itemTax += priceTag.Value;
-                        //        }
-                        //    }
-                        //}
-
-                        long itemPrice = ToCents(shipmentItem.UnitPrice) * shipmentItem.Quantity;
-                        long itemTax = ToCents(shipmentItem.TaxAmount ?? 0d);
-                        long shippingCost = ToCents(shipmentItem.ShippingAmount ?? 0d);
-
-                        InvoiceItem invoiceItem = new InvoiceItem
+                        OrderInvoiceNotificationRequest request = new OrderInvoiceNotificationRequest
                         {
-                            Id = shipmentItem.Sku,
-                            Price = itemPrice,
-                            Quantity = shipmentItem.Quantity
+                            Courier = shipment.CarrierCode,
+                            TrackingNumber = shipment.TrackingNumber,
+                            Type = ShipStationConstants.InvoiceType.OUTPUT,
+                            InvoiceNumber = shipment.ShipmentId.ToString(),
+                            InvoiceValue = 0L,
+                            IssuanceDate = shipment.ShipDate.ToString(),
+                            Items = new List<InvoiceItem>(),
+                            TrackingUrl = null
                         };
 
-                        request.Items.Add(invoiceItem);
-                        request.InvoiceValue += (itemPrice + itemTax + shippingCost);
-                        Console.WriteLine($"request.InvoiceValue = {request.InvoiceValue}");
-                        sb.AppendLine($"{sku}:{ToCents(shipmentItem.UnitPrice)}x{shipmentItem.Quantity}={itemPrice} Tax={itemTax} Shipping={shippingCost}");
+                        foreach (ShipmentItem shipmentItem in shipment.ShipmentItems)
+                        {
+                            string sku = shipmentItem.Sku;
+                            Console.WriteLine($"Item '{shipmentItem.Name}' '{sku}' ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
+                            sb.AppendLine($"Item '{shipmentItem.Name}' '{sku}' ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
+
+                            //LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(sku)).FirstOrDefault();
+                            //Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
+
+                            //VtexOrderItem item = vtexOrder.Items.Where(i => i.Id.Equals(shipmentItem.Sku)).FirstOrDefault();
+                            //long itemTax = 0l;
+                            //foreach (PriceTag priceTag in item.PriceTags)
+                            //{
+                            //    string name = priceTag.Name.ToLower();
+                            //    if (name.Contains("tax@") || name.Contains("taxhub@"))
+                            //    {
+                            //        if (priceTag.IsPercentual ?? false)
+                            //        {
+                            //            itemTax += (long)(item.SellingPrice * priceTag.RawValue);
+                            //        }
+                            //        else
+                            //        {
+                            //            itemTax += priceTag.Value;
+                            //        }
+                            //    }
+                            //}
+
+                            long itemPrice = ToCents(shipmentItem.UnitPrice) * shipmentItem.Quantity;
+                            long itemTax = ToCents(shipmentItem.TaxAmount ?? 0d);
+                            long shippingCost = ToCents(shipmentItem.ShippingAmount ?? 0d);
+
+                            InvoiceItem invoiceItem = new InvoiceItem
+                            {
+                                Id = shipmentItem.Sku,
+                                Price = itemPrice,
+                                Quantity = shipmentItem.Quantity
+                            };
+
+                            request.Items.Add(invoiceItem);
+                            request.InvoiceValue += (itemPrice + itemTax + shippingCost);
+                            Console.WriteLine($"request.InvoiceValue = {request.InvoiceValue}");
+                            sb.AppendLine($"{sku}:{ToCents(shipmentItem.UnitPrice)}x{shipmentItem.Quantity}={itemPrice} Tax={itemTax} Shipping={shippingCost}");
+                        }
+
+                        sb.AppendLine($"InvoiceValue = {request.InvoiceValue}");
+                        // Don't charge more than order total
+                        //request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
+
+                        OrderInvoiceNotificationResponse response = await this.OrderInvoiceNotification(orderId, request);
+                        success = response != null;
+                        sb.AppendLine($"Response='{JsonConvert.SerializeObject(response)}'");
+                        _context.Vtex.Logger.Info("ProcessShipNotification", orderId, JsonConvert.SerializeObject(request));
                     }
-
-                    sb.AppendLine($"InvoiceValue = {request.InvoiceValue}");
-                    // Don't charge more than order total
-                    //request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
-
-                    OrderInvoiceNotificationResponse response = await this.OrderInvoiceNotification(orderId, request);
-                    success = response != null;
-                    sb.AppendLine($"Response='{JsonConvert.SerializeObject(response)}'");
-                    _context.Vtex.Logger.Info("ProcessShipNotification", orderId, JsonConvert.SerializeObject(request));
+                    else
+                    {
+                        sb.AppendLine($"Order {orderId} not found.");
+                    }
                 }
             }
 

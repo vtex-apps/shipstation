@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.8] - 2020-11-05
+
+### Changed
+
+- Handle ship notifications for orders that are not found
+
 ## [0.0.7] - 2020-11-03
 
 ### Changed
