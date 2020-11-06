@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.16] - 2020-11-06
+
+### Changed
+
+- SetOrderStatus to http
+
 ## [0.0.15] - 2020-11-06
 
 ### Changed

@@ -476,7 +476,7 @@ namespace ShipStation.Services
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri($"https://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/oms/pvt/orders/{orderId}/{orderStatus}")
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/oms/pvt/orders/{orderId}/{orderStatus}")
             };
 
             request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
