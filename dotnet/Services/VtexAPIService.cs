@@ -355,7 +355,16 @@ namespace ShipStation.Services
                                         if (success && merchantSettings.UpdateOrderStatus)
                                         {
                                             //success = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
-                                            bool response = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                            bool response = false;
+                                            try
+                                            {
+                                                response = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                            }
+                                            catch(Exception ex)
+                                            {
+                                                _context.Vtex.Logger.Error("ProcessNotification", "SetOrderStatus", $"Error setting status to start-handling for order {allStatesNotification.OrderId}", ex);
+                                            }
+
                                             _context.Vtex.Logger.Info("ProcessNotification", null, $"Set Status to start-handling for order {allStatesNotification.OrderId} = {response}.");
                                             if (!response)
                                             {

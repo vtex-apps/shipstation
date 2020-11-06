@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.14] - 2020-11-06
+
+### Changed
+
+- Added error handling around setting order status to start-handling
+
 ## [0.0.13] - 2020-11-06
 
 ### Changed
