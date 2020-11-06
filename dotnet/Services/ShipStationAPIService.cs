@@ -191,6 +191,7 @@ namespace ShipStation.Services
 
                 if (!responseWrapper.IsSuccess)
                 {
+                    Console.WriteLine($"Problem Sending Request. Response: '{responseWrapper.ResponseText}'");
                     _context.Vtex.Logger.Info("SendRequest", null, $"Problem Sending Request. Response: '{responseWrapper.ResponseText}' {jsonSerializedRequest}");
                 }
 
@@ -694,7 +695,7 @@ namespace ShipStation.Services
                     {
                         responseWrapper = await this.SendRequest(url, shipStationOrderTemp);
                         _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.Status}'='{shipStationOrderTemp.OrderStatus}'");
-                        //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+                        Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
                         //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
                         Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
 

@@ -356,11 +356,16 @@ namespace ShipStation.Services
                                         {
                                             //success = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
                                             bool response = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
+                                            _context.Vtex.Logger.Info("ProcessNotification", null, $"Set Status to start-handling for order {allStatesNotification.OrderId} = {response}.");
                                             if (!response)
                                             {
                                                 _context.Vtex.Logger.Info("ProcessNotification", null, $"Failed to set Status to start-handling for order {allStatesNotification.OrderId}.");
                                                 //Console.WriteLine($"SetOrderStatus [{response}]");
                                             }
+                                        }
+                                        else
+                                        {
+                                            _context.Vtex.Logger.Info("ProcessNotification", null, $"Order {allStatesNotification.OrderId} CreateUpdateOrder={success} Settings 'UpdateOrderStatus'={merchantSettings.UpdateOrderStatus}.");
                                         }
                                     }
                                 }
@@ -505,6 +510,10 @@ namespace ShipStation.Services
                         long orderTotal = vtexOrder.Totals.Sum(t => t.Value);
                         long shippingTotal = vtexOrder.Totals.Where(t => t.Name == "Shipping").Select(d => d.Value).FirstOrDefault();
                         long taxTotal = vtexOrder.Totals.Where(t => t.Name == "Tax").Select(d => d.Value).FirstOrDefault();
+                        long orderItemQnty = vtexOrder.Items.Sum(i => i.Quantity);
+                        long shippedItemQnty = vtexOrder.PackageAttachment.Packages.SelectMany(p => p.Items).Sum(i => i.Quantity);
+                        long totalInvoice = vtexOrder.PackageAttachment.Packages.Sum(i => i.InvoiceValue);
+                        long itemQntyThisShipment = shipment.ShipmentItems.Sum(s => s.Quantity);
 
                         OrderInvoiceNotificationRequest request = new OrderInvoiceNotificationRequest
                         {
@@ -565,6 +574,16 @@ namespace ShipStation.Services
                         sb.AppendLine($"InvoiceValue = {request.InvoiceValue}");
                         // Don't charge more than order total
                         //request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
+                        if(request.InvoiceValue < orderTotal)
+                        {
+                            Console.WriteLine($"request.InvoiceValue < orderTotal : {request.InvoiceValue} < {orderTotal}");
+                            if (shippedItemQnty + itemQntyThisShipment == orderItemQnty)
+                            {
+                                request.InvoiceValue = orderTotal - totalInvoice;
+                                sb.AppendLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
+                                Console.WriteLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
+                            }
+                        }
 
                         OrderInvoiceNotificationResponse response = await this.OrderInvoiceNotification(orderId, request);
                         success = response != null;

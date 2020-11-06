@@ -206,7 +206,7 @@ const ShipStationAdmin: FC = () => {
           </div>
           <div className="mt5">
               <Toggle
-                  label="Update order status to 'ready for handling' when order has been sent to ShipStation"
+                  label="Update order status to 'Start Handing' when order has been sent to ShipStation"
                   size="large"
                   checked={settingsState.updateOrderStatus}
                   onChange={() =>

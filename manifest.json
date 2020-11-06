@@ -1,7 +1,7 @@
 {
   "name": "ship-station",
-  "vendor": "vtexus",
-  "version": "0.0.8",
+  "vendor": "vtex",
+  "version": "0.0.13",
   "title": "ShipStation",
   "description": "ShipStation API",
   "settingsSchema": {
@@ -162,6 +162,90 @@
       "name": "outbound-access",
       "attrs": {
         "host": "ssapi12.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi6.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi1.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi2.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi3.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi4.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi5.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi13.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi7.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi8.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi9.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi10.shipstation.com",
+        "path": "shipments"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "ssapi11.shipstation.com",
         "path": "shipments"
       }
     },

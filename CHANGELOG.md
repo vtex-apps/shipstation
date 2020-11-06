@@ -6,6 +6,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.13] - 2020-11-06
+
+### Changed
+
+- If all items have shipped, force invoice total to remaining
+
+## [0.0.12] - 2020-11-06
+
+### Changed
+
+- debugging
+
+## [0.0.11] - 2020-11-06
+
+### Changed
+
+- Force order status update for debug
+
+## [0.0.10] - 2020-11-06
+
+### Changed
+
+- Added more servers to outbound access
+
+## [0.0.9] - 2020-11-06
+
+### Changed
+
+- Changed vendor to vtex
+
 ## [0.0.8] - 2020-11-05
 
 ### Changed
