@@ -1,7 +1,7 @@
 {
   "name": "ship-station",
   "vendor": "vtex",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "title": "ShipStation",
   "description": "ShipStation API",
   "settingsSchema": {
@@ -149,6 +149,13 @@
       "attrs": {
         "host": "{{account}}.vtexcommercestable.com.br",
         "path": "/api/orders/hook/config"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "{{account}}.vtexcommercestable.com.br",
+        "path": "/api/oms/pvt/orders/*"
       }
     },
     {
