@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.17] - 2020-11-10
+
+### Changed
+
+- Tax rounding fix
+- Input Values formatting
+
 ## [0.0.16] - 2020-11-06
 
 ### Changed

@@ -12,6 +12,7 @@ using Vtex.Api.Context;
 using System.Reflection;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace ShipStation.Services
 {
@@ -133,22 +134,45 @@ namespace ShipStation.Services
         //    return sb.ToString();
         //}
 
-        private async Task<List<Option>> FormatInputValues(InputValues inputValues)
+        //private async Task<List<Option>> FormatInputValues(InputValues inputValues)
+        //{
+        //    List<Option> options = new List<Option>();
+        //    Option option = null;
+        //    option = new Option { Name = "Line 1", Value = CleanString(inputValues.Line1) };
+        //    options.Add(option);
+        //    option = new Option { Name = "Line 2", Value = CleanString(inputValues.Line2) };
+        //    options.Add(option);
+        //    option = new Option { Name = "Line 3", Value = CleanString(inputValues.Line3) };
+        //    options.Add(option);
+        //    option = new Option { Name = "Line 4", Value = CleanString(inputValues.Line4) };
+        //    options.Add(option);
+        //    if (!string.IsNullOrEmpty(inputValues.TextStyle))
+        //    {
+        //        option = new Option { Name = "Text", Value = CleanString(inputValues.TextStyle) };
+        //        options.Add(option);
+        //    }
+
+        //    return options;
+        //}
+
+        private async Task<List<Option>> FormatInputValues(object inputValues)
         {
             List<Option> options = new List<Option>();
             Option option = null;
-            option = new Option { Name = "Line 1", Value = CleanString(inputValues.Line1) };
-            options.Add(option);
-            option = new Option { Name = "Line 2", Value = CleanString(inputValues.Line2) };
-            options.Add(option);
-            option = new Option { Name = "Line 3", Value = CleanString(inputValues.Line3) };
-            options.Add(option);
-            option = new Option { Name = "Line 4", Value = CleanString(inputValues.Line4) };
-            options.Add(option);
-            if (!string.IsNullOrEmpty(inputValues.TextStyle))
+            try
             {
-                option = new Option { Name = "Text", Value = CleanString(inputValues.TextStyle) };
-                options.Add(option);
+                IDictionary<string, JToken> Jsondata = JObject.Parse(inputValues.ToString());
+                foreach (KeyValuePair<string, JToken> element in Jsondata)
+                {
+                    string innerKey = element.Key;
+                    string innerValue = element.Value.ToString();
+                    option = new Option { Name = innerKey, Value = CleanString(innerValue) };
+                    options.Add(option);
+                }
+            }
+            catch(Exception ex)
+            {
+                _context.Vtex.Logger.Error("FormatInputValues", null, $"Error formatting {inputValues}", ex);
             }
 
             return options;
@@ -318,10 +342,24 @@ namespace ShipStation.Services
 
                 createUpdateOrderRequest.CarrierCode = null;
                 //createUpdateOrderRequest.Confirmation = ShipStationConstants.ShipStationConfirmation.None;
-                createUpdateOrderRequest.CustomerEmail = vtexOrder.ClientProfileData.Email;
+                string customerEmail = vtexOrder.ClientProfileData.Email;
+                //if (customerEmail.Contains('-'))
+                //{
+                //    try
+                //    {
+                //        string[] emailArray = customerEmail.Split('-');
+                //        customerEmail = emailArray[0];
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        _context.Vtex.Logger.Error("CreateUpdateOrder", null, $"Error parsing email {customerEmail}", ex);
+                //    }
+                //}
+
+                createUpdateOrderRequest.CustomerEmail = customerEmail;
                 //createUpdateOrderRequest.CustomerId = 0;  // read-only
                 createUpdateOrderRequest.CustomerNotes = CleanString(vtexOrder?.OpenTextField?.Value);
-                createUpdateOrderRequest.CustomerUsername = vtexOrder.ClientProfileData.Email;
+                createUpdateOrderRequest.CustomerUsername = customerEmail;
                 createUpdateOrderRequest.Dimensions = new Dimensions
                 {
 
@@ -435,7 +473,7 @@ namespace ShipStation.Services
                             {
                                 if (priceTag.IsPercentual ?? false)
                                 {
-                                    itemTax += (long)(item.SellingPrice * priceTag.RawValue);
+                                    itemTax += (long)Math.Round(item.SellingPrice * priceTag.RawValue, MidpointRounding.AwayFromZero);
                                 }
                                 else
                                 {

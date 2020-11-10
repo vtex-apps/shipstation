@@ -1135,7 +1135,7 @@ namespace ShipStation.Models
         public string Id { get; set; }
 
         [JsonProperty("inputValues")]
-        public InputValues InputValues { get; set; }
+        public object InputValues { get; set; }
     }
 
     public class InputValues

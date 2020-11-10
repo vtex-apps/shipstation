@@ -509,6 +509,15 @@ namespace ShipStation.Services
             foreach(Shipment shipment in shipmentsResponse.Shipments)
             {
                 string orderId = shipment.OrderNumber;
+                //string orderId = shipment.OrderKey;
+                //if(!orderId.Contains('-'))
+                //{
+                //    if(shipment.OrderNumber.Contains('-'))
+                //    {
+                //        orderId = shipment.OrderNumber;
+                //    }
+                //}
+
                 Console.WriteLine($"Processing Shipment for Order#{orderId} [{shipment.CarrierCode}] {shipment.TrackingNumber}");
                 sb.AppendLine($"Processing Shipment for Order#{orderId} [{shipment.CarrierCode}] {shipment.TrackingNumber}");
                 if (shipment.ShipmentItems != null)
@@ -583,16 +592,16 @@ namespace ShipStation.Services
                         sb.AppendLine($"InvoiceValue = {request.InvoiceValue}");
                         // Don't charge more than order total
                         //request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
-                        if(request.InvoiceValue < orderTotal)
-                        {
-                            Console.WriteLine($"request.InvoiceValue < orderTotal : {request.InvoiceValue} < {orderTotal}");
-                            if (shippedItemQnty + itemQntyThisShipment == orderItemQnty)
-                            {
-                                request.InvoiceValue = orderTotal - totalInvoice;
-                                sb.AppendLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
-                                Console.WriteLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
-                            }
-                        }
+                        //if(request.InvoiceValue < orderTotal)
+                        //{
+                        //    Console.WriteLine($"request.InvoiceValue < orderTotal : {request.InvoiceValue} < {orderTotal}");
+                        //    if (shippedItemQnty + itemQntyThisShipment == orderItemQnty)
+                        //    {
+                        //        request.InvoiceValue = orderTotal - totalInvoice;
+                        //        sb.AppendLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
+                        //        Console.WriteLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
+                        //    }
+                        //}
 
                         OrderInvoiceNotificationResponse response = await this.OrderInvoiceNotification(orderId, request);
                         success = response != null;
