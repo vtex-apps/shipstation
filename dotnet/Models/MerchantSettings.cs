@@ -17,6 +17,7 @@ namespace ShipStation.Models
         public bool MarketplaceOnly { get; set; }
         public bool SendItemDetails { get; set; }
         public bool UpdateOrderStatus { get; set; }
+        public bool UseSequenceAsOrderNumber { get; set; }
         public string BrandedReturnsUrl { get; set; }
     }
 }

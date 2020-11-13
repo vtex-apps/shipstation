@@ -505,18 +505,19 @@ namespace ShipStation.Services
         {
             bool success = false;
             StringBuilder sb = new StringBuilder();
+            MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            string orderId = string.Empty;
 
-            foreach(Shipment shipment in shipmentsResponse.Shipments)
+            foreach (Shipment shipment in shipmentsResponse.Shipments)
             {
-                string orderId = shipment.OrderNumber;
-                //string orderId = shipment.OrderKey;
-                //if(!orderId.Contains('-'))
-                //{
-                //    if(shipment.OrderNumber.Contains('-'))
-                //    {
-                //        orderId = shipment.OrderNumber;
-                //    }
-                //}
+                if (merchantSettings.UseSequenceAsOrderNumber)
+                {
+                    orderId = shipment.OrderKey;
+                }
+                else
+                {
+                    orderId = shipment.OrderNumber;
+                }
 
                 Console.WriteLine($"Processing Shipment for Order#{orderId} [{shipment.CarrierCode}] {shipment.TrackingNumber}");
                 sb.AppendLine($"Processing Shipment for Order#{orderId} [{shipment.CarrierCode}] {shipment.TrackingNumber}");

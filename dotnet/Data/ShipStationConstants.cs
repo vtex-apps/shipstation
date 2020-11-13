@@ -24,7 +24,7 @@ namespace ShipStation.Data
         public const string LOCAL_ENVIRONMENT = "myvtex";
         public const string VTEX_ID_HEADER_NAME = "VtexIdclientAutCookie";
         public const string VTEX_WORKSPACE_HEADER_NAME = "X-Vtex-Workspace";
-        public const string APP_SETTINGS = "vtex.ship-station";
+        public const string APP_SETTINGS = "vtexus.ship-station";
         public const string ACCEPT = "Accept";
         public const string CONTENT_TYPE = "Content-Type";
         public const string HTTP_FORWARDED_HEADER = "HTTP_X_FORWARDED_FOR";

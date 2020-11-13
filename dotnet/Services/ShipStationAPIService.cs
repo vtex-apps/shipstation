@@ -379,8 +379,18 @@ namespace ShipStation.Services
                 };
 
                 createUpdateOrderRequest.OrderDate = vtexOrder.CreationDate;
-                createUpdateOrderRequest.OrderKey = vtexOrder.Sequence;
-                createUpdateOrderRequest.OrderNumber = vtexOrder.OrderId;
+
+                if (merchantSettings.UseSequenceAsOrderNumber)
+                {
+                    createUpdateOrderRequest.OrderKey = vtexOrder.OrderId;
+                    createUpdateOrderRequest.OrderNumber = vtexOrder.Sequence;
+                }
+                else
+                {
+                    createUpdateOrderRequest.OrderKey = vtexOrder.Sequence;
+                    createUpdateOrderRequest.OrderNumber = vtexOrder.OrderId;
+                }
+
                 createUpdateOrderRequest.OrderStatus = await this.GetShipStationOrderStatus(vtexOrder.Status);
                 createUpdateOrderRequest.PackageCode = null;
                 if (vtexOrder.ReceiptData != null && vtexOrder.ReceiptData.ReceiptCollection != null)
