@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Changed vendor to vtex
+- Updated billing options
+- Added "cancelled" state
+
 ## [0.0.18] - 2020-11-13
 
 ### Changed
