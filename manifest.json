@@ -1,6 +1,6 @@
 {
   "name": "ship-station",
-  "vendor": "vtexus",
+  "vendor": "vtex",
   "version": "0.0.18",
   "title": "ShipStation",
   "description": "ShipStation API",
@@ -86,11 +86,14 @@
     "postreleasy": "vtex publish --verbose"
   },
   "billingOptions": {
-    "termsURL": "https://compliance.vtex.com/gdpr/policies/vtex-privacy-policy",
+    "termsURL": "https://support.vtex.com/hc/requests",
     "support": {
-      "url": "https://support.vtex.com/hc/requests"
+      "url": "https://help-tickets.vtex.com/en/support?app=vtex.ship-station"
     },
-    "free": true
+    "type": "free",
+    "availableCountries": [
+      "*"
+    ]
   },
   "registries": [
     "smartcheckout"

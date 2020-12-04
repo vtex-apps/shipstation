@@ -82,6 +82,7 @@ namespace ShipStation.Services
                     break;
                 case ShipStationConstants.VtexOrderStatus.Cancel:
                 case ShipStationConstants.VtexOrderStatus.Canceled:
+                case ShipStationConstants.VtexOrderStatus.Cancelled:
                     status = ShipStationConstants.ShipStationOrderStatus.Canceled;
                     break;
                 case ShipStationConstants.VtexOrderStatus.ApprovePayment:
