@@ -283,7 +283,7 @@ namespace ShipStation.Services
         public async Task<bool> CreateUpdateOrder(VtexOrder vtexOrder)
         {
             ResponseWrapper responseWrapper = null;
-            if (vtexOrder != null)
+            if (vtexOrder != null && !string.IsNullOrEmpty(vtexOrder.Status))
             {
                 string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.ORDERS}/{ShipStationConstants.API.CREATE_ORDER}";
                 MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
