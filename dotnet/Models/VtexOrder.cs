@@ -656,7 +656,7 @@ namespace ShipStation.Models
         public Content Restitutions { get; set; }
 
         [JsonProperty("volumes")]
-        public long Volumes { get; set; }
+        public object Volumes { get; set; }
     }
 
     public class PackageItem

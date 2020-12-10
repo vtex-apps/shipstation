@@ -134,6 +134,9 @@
       "name": "WorkflowAction"
     },
     {
+      "name": "CancelAction"
+    },
+    {
       "name": "outbound-access",
       "attrs": {
         "host": "{{account}}.vtexcommercestable.com.br",

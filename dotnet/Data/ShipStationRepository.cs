@@ -180,5 +180,71 @@
 
             response.EnsureSuccessStatusCode();
         }
+
+        public async Task<DateTime> GetLastCancelledOrderCheck()
+        {
+            DateTime lastCheck = DateTime.Now;
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"http://vbase.{this._environmentVariableProvider.Region}.vtex.io/{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}/{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_WORKSPACE_HEADER_NAME]}/buckets/{this._applicationName}/{ShipStationConstants.BUCKET}/files/{ShipStationConstants.CANCELLED_ORDER_CHECK}"),
+            };
+
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            Console.WriteLine($"GetLastCancelledOrderCheck {response.StatusCode}:{response.ReasonPhrase}");
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(responseContent))
+                {
+                    lastCheck = JsonConvert.DeserializeObject<DateTime>(responseContent);
+                }
+                else
+                {
+                    await this.SetLastCancelledOrderCheck(lastCheck);
+                }
+            }
+            else
+            {
+                await this.SetLastCancelledOrderCheck(lastCheck.AddDays(-1));
+            }
+
+            // DEBUG !!!!
+            //lastCheck = DateTime.Now.AddHours(-72);
+            // DEBUG !!!!
+
+            return lastCheck;
+        }
+
+        public async Task SetLastCancelledOrderCheck(DateTime lastCheck)
+        {
+            var jsonSerializedStoreList = JsonConvert.SerializeObject(lastCheck);
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Put,
+                RequestUri = new Uri($"http://vbase.{this._environmentVariableProvider.Region}.vtex.io/{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}/{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_WORKSPACE_HEADER_NAME]}/buckets/{this._applicationName}/{ShipStationConstants.BUCKET}/files/{ShipStationConstants.CANCELLED_ORDER_CHECK}"),
+                Content = new StringContent(jsonSerializedStoreList, Encoding.UTF8, ShipStationConstants.APPLICATION_JSON)
+            };
+
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+
+            Console.WriteLine($"    -----------------------     SetLastCancelledOrderCheck {response.StatusCode}:{response.ReasonPhrase}      -------------------------------     ");
+
+            response.EnsureSuccessStatusCode();
+        }
     }
 }
