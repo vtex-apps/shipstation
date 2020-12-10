@@ -1,4 +1,5 @@
 ﻿using ShipStation.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace ShipStation.Services
@@ -16,5 +17,6 @@ namespace ShipStation.Services
         Task<ListAllWarehousesResponse> ListAllWarehouses();
         Task<string> ValidateShipments(string date);
         Task<string> ValidateOrderShipments(string orderId);
+        Task<string> CheckCancelledOrders(DateTime date);
     }
 }

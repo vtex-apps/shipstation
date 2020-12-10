@@ -33,6 +33,7 @@ namespace ShipStation.Data
         public const string WEB_HOOK_NOTIFICATION = "web-hook-notification";
         public const string STORE_LIST = "store-list";
         public const string SHIPMENT_CHECK = "shipment-check";
+        public const string CANCELLED_ORDER_CHECK = "cancelled-order-check";
 
         public class API
         {

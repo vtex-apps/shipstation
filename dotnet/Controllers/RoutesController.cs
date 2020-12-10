@@ -213,9 +213,7 @@
         public async Task<IActionResult> ListOrders()
         {
             Response.Headers.Add("Cache-Control", "private");
-            //bool success = await this._vtexAPIService.CreateOrUpdateHook();
             var response = await this._shipStationAPIService.ListOrders(string.Empty);
-            //return Json($"Vtex Order Hook? {success} - ShipStation Webhook: {response}");
             return Json(response);
         }
 
@@ -240,6 +238,13 @@
             Response.Headers.Add("Cache-Control", "private");
             ListWebhooksResponse listWebhooksResponse = await this._shipStationAPIService.ListWebHooks();
             var response = listWebhooksResponse.Webhooks.Where(w => w.Active).Select(w => w.Name).ToList();
+            return Json(response);
+        }
+
+        public async Task<IActionResult> CheckCancelledOrders()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            var response = await this._vtexAPIService.CheckCancelledOrders(DateTime.Now);
             return Json(response);
         }
 

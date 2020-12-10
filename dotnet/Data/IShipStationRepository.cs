@@ -12,5 +12,7 @@ namespace ShipStation.Data
         Task SaveShipStationStoreList(List<ListStoresResponse> listOfStores);
         Task<DateTime> GetLastShipmentCheck();
         Task SetLastShipmentCheck(DateTime lastCheck);
+        Task<DateTime> GetLastCancelledOrderCheck();
+        Task SetLastCancelledOrderCheck(DateTime lastCheck);
     }
 }

@@ -76,6 +76,10 @@
       "path": "/ship-station/list-active-webhooks",
       "public": true
     },
+    "checkCancelledOrders": {
+      "path": "/ship-station/check-cancelled-orders",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

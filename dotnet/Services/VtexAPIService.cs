@@ -385,6 +385,16 @@ namespace ShipStation.Services
                                 Console.WriteLine($"GetOrderInformation returned Null for order '{allStatesNotification.OrderId}'");
                             }
 
+                            try
+                            {
+                                // Check for any orders that were cancelled in ShipStation
+                                await CheckCancelledOrders();
+                            }
+                            catch(Exception ex)
+                            {
+                                _context.Vtex.Logger.Error("ProcessNotification", "CheckCancelledOrders", $"Error checking for Cancelled orders", ex);
+                            }
+
                             break;
                         //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
                         case ShipStationConstants.VtexOrderStatus.Cancel:
@@ -768,6 +778,56 @@ namespace ShipStation.Services
                             {
                                 sb.AppendLine($"invoice {shipment.ShipmentId} exists.");
                             }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($" Could not load {orderId}");
+                        sb.AppendLine($"Could not load {orderId}");
+                    }
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        public async Task CheckCancelledOrders()
+        {
+            int windowInMinutes = 10;
+            DateTime lastCheck = await _shipStationRepository.GetLastCancelledOrderCheck();
+            if(lastCheck.AddMinutes(windowInMinutes) < DateTime.Now)
+            {
+                string response = await CheckCancelledOrders(DateTime.Now);
+                await _shipStationRepository.SetLastCancelledOrderCheck(DateTime.Now);
+            }
+            else
+            {
+                Console.WriteLine("Skipping check for cancelled orders");
+            }
+        }
+
+        public async Task<string> CheckCancelledOrders(DateTime date)
+        {
+            StringBuilder sb = new StringBuilder();
+            ListOrdersResponse listOrdersResponse = await _shipStationAPIService.ListOrders($"modifyDateStart={date.AddDays(-2)}&modifyDateEnd={date}&orderStatus={ShipStationConstants.ShipStationOrderStatus.Canceled}&pageSize=500");
+            Console.WriteLine($"CheckCancelledOrders pages={listOrdersResponse.Pages}");
+            if (listOrdersResponse != null)
+            {
+                sb.AppendLine($"{listOrdersResponse.Orders.Count} cancelled orders");
+                foreach (ShipStationOrder order in listOrdersResponse.Orders)
+                {
+                    string orderId = order.OrderNumber;
+                    sb.AppendLine(orderId);
+                    VtexOrder vtexOrder = await this.GetOrderInformation(orderId);
+                    if (vtexOrder != null)
+                    {
+                        string orderState = vtexOrder.Status;
+                        Console.WriteLine($"{orderId} {orderState}");
+                        sb.AppendLine($"{orderId} {orderState}");
+                        if (!orderState.Equals(ShipStationConstants.VtexOrderStatus.Cancelled))
+                        {
+                            bool updated = await SetOrderStatus(orderId, ShipStationConstants.VtexOrderStatus.Cancel);
+                            sb.AppendLine($"Order {orderId} updated? {updated}");
                         }
                     }
                     else
