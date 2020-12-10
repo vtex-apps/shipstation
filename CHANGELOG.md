@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.21] - 2020-12-10
+
 ### Added
 
 - Check for order cancelled in ShipStation that are not cancelled in Vtex
