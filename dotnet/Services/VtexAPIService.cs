@@ -808,6 +808,7 @@ namespace ShipStation.Services
 
         public async Task<string> CheckCancelledOrders(DateTime date)
         {
+            bool updated = false;
             StringBuilder sb = new StringBuilder();
             ListOrdersResponse listOrdersResponse = await _shipStationAPIService.ListOrders($"modifyDateStart={date.AddDays(-2)}&modifyDateEnd={date}&orderStatus={ShipStationConstants.ShipStationOrderStatus.Canceled}&pageSize=500");
             Console.WriteLine($"CheckCancelledOrders pages={listOrdersResponse.Pages}");
@@ -824,9 +825,42 @@ namespace ShipStation.Services
                         string orderState = vtexOrder.Status;
                         Console.WriteLine($"{orderId} {orderState}");
                         sb.AppendLine($"{orderId} {orderState}");
-                        if (!orderState.Equals(ShipStationConstants.VtexOrderStatus.Cancelled))
+                        if (!orderState.Equals(ShipStationConstants.VtexOrderStatus.Canceled))
                         {
-                            bool updated = await SetOrderStatus(orderId, ShipStationConstants.VtexOrderStatus.Cancel);
+                            long totalItemQuantitySS = order.Items.Sum(i => i.Quantity);
+                            long totalItemQuantityVtex = vtexOrder.Items.Sum(i => i.Quantity);
+                            if (totalItemQuantitySS == totalItemQuantityVtex)
+                            {
+                                updated = await SetOrderStatus(orderId, ShipStationConstants.VtexOrderStatus.Cancel);
+                                _context.Vtex.Logger.Info("CheckCancelledOrders", "CancelOrder", $"Order {order} cancelled? {updated}");
+                            }
+                            else
+                            {
+                                ChangeOrderRequest changeOrderRequest = new ChangeOrderRequest
+                                {
+                                    OrderId = orderId,
+                                    Reason = ShipStationConstants.ORDER_CHANGE_REASON,
+                                    ItemsRemoved = new List<ChangeItem>(),
+                                    RequestId = order.ModifyDate
+                                };
+
+                                foreach(OrderItem cancelledItem in order.Items)
+                                {
+                                    ChangeItem changeItem = new ChangeItem
+                                    {
+                                        Id = cancelledItem.LineItemKey,
+                                        Price = (long)(cancelledItem.UnitPrice * 100) * cancelledItem.Quantity,
+                                        Quantity = cancelledItem.Quantity
+                                    };
+
+                                    changeOrderRequest.ItemsRemoved.Add(changeItem);
+                                }
+
+                                ChangeOrderResponse changeOrderResponse = await ChangeOrder(orderId, changeOrderRequest);
+                                updated = changeOrderResponse != null;
+                                _context.Vtex.Logger.Info("CheckCancelledOrders", "ChangeOrder", $"ChangeOrderRequest: {changeOrderRequest}  ChangeOrderResponse: {changeOrderResponse}");
+                            }
+
                             sb.AppendLine($"Order {orderId} updated? {updated}");
                         }
                     }
@@ -839,6 +873,42 @@ namespace ShipStation.Services
             }
 
             return sb.ToString();
+        }
+
+        public async Task<ChangeOrderResponse> ChangeOrder(string orderId, ChangeOrderRequest changeOrderRequest)
+        {
+            ChangeOrderResponse changeOrderResponse = null;
+            string jsonSerializedRequest = JsonConvert.SerializeObject(changeOrderRequest);
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/oms/pvt/orders/{orderId}/changes"),
+                Content = new StringContent(jsonSerializedRequest, Encoding.UTF8, ShipStationConstants.APPLICATION_JSON)
+            };
+
+            request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"ChangeOrder for Order '{orderId}' [{response.StatusCode}] {responseContent}");
+            if(response.IsSuccessStatusCode)
+            {
+                changeOrderResponse = JsonConvert.DeserializeObject<ChangeOrderResponse>(responseContent);
+            }
+
+            return changeOrderResponse;
         }
 
         private long ToCents(double asDollars)

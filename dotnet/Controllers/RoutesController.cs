@@ -213,7 +213,7 @@
         public async Task<IActionResult> ListOrders()
         {
             Response.Headers.Add("Cache-Control", "private");
-            var response = await this._shipStationAPIService.ListOrders(string.Empty);
+            var response = await this._shipStationAPIService.ListOrders("pageSize=500&orderStatus=cancelled");
             return Json(response);
         }
 
