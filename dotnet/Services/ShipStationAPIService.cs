@@ -508,9 +508,20 @@ namespace ShipStation.Services
 
                         OrderItem orderItem = new OrderItem();
                         orderItem.Adjustment = false;
-                        orderItem.FulfillmentSku = item.SellerSku;
                         orderItem.ImageUrl = item.ImageUrl;
                         orderItem.LineItemKey = item.Id;
+
+                        if (merchantSettings.UseRefIdAsSku)
+                        {
+                            orderItem.FulfillmentSku = item.RefId;
+                            orderItem.Sku = item.RefId;
+                        }
+                        else
+                        {
+                            orderItem.FulfillmentSku = item.SellerSku;
+                            orderItem.Sku = item.SellerSku;
+                        }
+
                         orderItem.Name = CleanString(item.Name);
                         orderItem.Options = new List<Option>();
 
@@ -544,6 +555,18 @@ namespace ShipStation.Services
                                 foreach (Category category in item.AdditionalInfo.Categories)
                                 {
                                     orderItem.Options.Add(new Option { Name = category.Id.ToString(), Value = CleanString(category.Name) });
+                                }
+                            }
+                        }
+
+                        if(merchantSettings.SendSkuDetails)
+                        {
+                            GetSkuContextResponse skuContext = await this.GetSkuContext(item.SellerSku);
+                            if(skuContext != null && skuContext.SkuSpecifications != null)
+                            {
+                                foreach (Specification specification in skuContext.SkuSpecifications)
+                                {
+                                    orderItem.Options.Add(new Option { Name = CleanString(specification.FieldName), Value = CleanString(string.Join(",", specification.FieldValues)) });
                                 }
                             }
                         }
@@ -590,7 +613,6 @@ namespace ShipStation.Services
                         orderItem.ProductId = item.ProductId;
                         orderItem.Quantity = item.Quantity;
                         orderItem.ShippingAmount = ToDollar(sla.Price);
-                        orderItem.Sku = item.SellerSku;
                         orderItem.TaxAmount = ToDollar(itemTax);
                         orderItem.UnitPrice = ToDollar(item.SellingPrice);
                         orderItem.Upc = item.Ean;
@@ -988,6 +1010,49 @@ namespace ShipStation.Services
             }
 
             return storeId;
+        }
+
+        public async Task<GetSkuContextResponse> GetSkuContext(string skuId)
+        {
+            // GET https://{accountName}.{environment}.com.br/api/catalog_system/pvt/sku/stockkeepingunitbyid/skuId
+
+            GetSkuContextResponse getSkuContextResponse = null;
+
+            try
+            {
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.{ShipStationConstants.ENVIRONMENT}.com.br/api/catalog_system/pvt/sku/stockkeepingunitbyid/{skuId}")
+                };
+
+                request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+                string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+                if (authToken != null)
+                {
+                    request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                    request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                    request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+                }
+
+                var client = _clientFactory.CreateClient();
+                var response = await client.SendAsync(request);
+                string responseContent = await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    getSkuContextResponse = JsonConvert.DeserializeObject<GetSkuContextResponse>(responseContent);
+                }
+                else
+                {
+                    _context.Vtex.Logger.Warn("GetSkuContext", null, $"Could not get sku for id '{skuId}'");
+                }
+            }
+            catch (Exception ex)
+            {
+                _context.Vtex.Logger.Error("GetSkuContext", null, $"Error getting sku for id '{skuId}'", ex);
+            }
+
+            return getSkuContextResponse;
         }
     }
 }
