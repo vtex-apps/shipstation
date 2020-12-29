@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Changed field for shipping method
+
 ### Added
 
 - Check for order that was plit and partially cancelled in ShipStation that is not cancelled in Vtex

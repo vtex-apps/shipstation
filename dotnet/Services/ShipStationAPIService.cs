@@ -415,11 +415,19 @@ namespace ShipStation.Services
                 //        Console.WriteLine($"createUpdateOrderRequest.RequestedShippingService = '{createUpdateOrderRequest.RequestedShippingService}'");
                 //    }
                 //}
+                //try
+                //{
+                //    createUpdateOrderRequest.RequestedShippingService = vtexOrder.ShippingData.LogisticsInfo.SelectMany(l => l.Slas).SelectMany(s => s.DeliveryIds).Select(d => d.CourierName).FirstOrDefault();
+                //}
+                //catch(Exception ex)
+                //{
+                //    Console.WriteLine($"Error setting RequestedShippingService: {ex.Message}");
+                //}
                 try
                 {
-                    createUpdateOrderRequest.RequestedShippingService = vtexOrder.ShippingData.LogisticsInfo.SelectMany(l => l.Slas).SelectMany(s => s.DeliveryIds).Select(d => d.CourierName).FirstOrDefault();
+                    createUpdateOrderRequest.RequestedShippingService = vtexOrder.ShippingData.LogisticsInfo.Select(l => l.SelectedSla).FirstOrDefault();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine($"Error setting RequestedShippingService: {ex.Message}");
                 }

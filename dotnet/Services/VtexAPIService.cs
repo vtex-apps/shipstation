@@ -809,8 +809,9 @@ namespace ShipStation.Services
         public async Task<string> CheckCancelledOrders(DateTime date)
         {
             bool updated = false;
+            int daysToCheck = 2;
             StringBuilder sb = new StringBuilder();
-            ListOrdersResponse listOrdersResponse = await _shipStationAPIService.ListOrders($"modifyDateStart={date.AddDays(-2)}&modifyDateEnd={date}&orderStatus={ShipStationConstants.ShipStationOrderStatus.Canceled}&pageSize=500");
+            ListOrdersResponse listOrdersResponse = await _shipStationAPIService.ListOrders($"modifyDateStart={date.AddDays(-daysToCheck)}&modifyDateEnd={date}&orderStatus={ShipStationConstants.ShipStationOrderStatus.Canceled}&pageSize=500&sortBy=ModifyDate&sortDir=DESC");
             Console.WriteLine($"CheckCancelledOrders pages={listOrdersResponse.Pages}");
             if (listOrdersResponse != null)
             {
@@ -844,21 +845,57 @@ namespace ShipStation.Services
                                     RequestId = order.ModifyDate
                                 };
 
-                                foreach(OrderItem cancelledItem in order.Items)
+                                if (vtexOrder.ChangesAttachment != null && vtexOrder.ChangesAttachment.ChangesData != null)
                                 {
-                                    ChangeItem changeItem = new ChangeItem
-                                    {
-                                        Id = cancelledItem.LineItemKey,
-                                        Price = (long)(cancelledItem.UnitPrice * 100) * cancelledItem.Quantity,
-                                        Quantity = cancelledItem.Quantity
-                                    };
+                                    var itemsRemovedVtex = vtexOrder.ChangesAttachment.ChangesData.SelectMany(c => c.ItemsRemoved);
+                                    ListOrdersResponse listOrdersByOrderNumberResponse = await _shipStationAPIService.ListOrders($"orderNumber={orderId}");
+                                    var cancelledItemsShipstation = listOrdersByOrderNumberResponse.Orders.Where(o => o.OrderStatus.Equals(ShipStationConstants.ShipStationOrderStatus.Canceled)).SelectMany(i => i.Items);
+                                    var notCancelledItemsShipstation = listOrdersByOrderNumberResponse.Orders.Where(o => !o.OrderStatus.Equals(ShipStationConstants.ShipStationOrderStatus.Canceled)).SelectMany(i => i.Items);
 
-                                    changeOrderRequest.ItemsRemoved.Add(changeItem);
+                                    foreach (OrderItem cancelledItem in order.Items)
+                                    {
+                                        long totalCancelledForSku = cancelledItemsShipstation.Where(o => o.Sku.Equals(cancelledItem.Sku)).Sum(i => i.Quantity);
+                                        long qntyAlreadyRemovedForSku = itemsRemovedVtex.Where(o => o.Id.Equals(cancelledItem.Sku)).Sum(i => i.Quantity);
+                                        Console.WriteLine($"[-] | [-] | [-] | [-] | [-]     ({cancelledItem.Sku}): {qntyAlreadyRemovedForSku} < {totalCancelledForSku}");
+                                        if (qntyAlreadyRemovedForSku < totalCancelledForSku)
+                                        {
+
+                                            ChangeItem changeItem = new ChangeItem
+                                            {
+                                                Id = cancelledItem.LineItemKey,
+                                                Price = (long)(cancelledItem.UnitPrice * 100) * cancelledItem.Quantity,
+                                                Quantity = cancelledItem.Quantity
+                                            };
+
+                                            changeOrderRequest.ItemsRemoved.Add(changeItem);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    foreach (OrderItem cancelledItem in order.Items)
+                                    {
+                                        ChangeItem changeItem = new ChangeItem
+                                        {
+                                            Id = cancelledItem.LineItemKey,
+                                            Price = (long)(cancelledItem.UnitPrice * 100) * cancelledItem.Quantity,
+                                            Quantity = cancelledItem.Quantity
+                                        };
+
+                                        changeOrderRequest.ItemsRemoved.Add(changeItem);
+                                    }
                                 }
 
-                                ChangeOrderResponse changeOrderResponse = await ChangeOrder(orderId, changeOrderRequest);
-                                updated = changeOrderResponse != null;
-                                _context.Vtex.Logger.Info("CheckCancelledOrders", "ChangeOrder", $"ChangeOrderRequest: {changeOrderRequest}  ChangeOrderResponse: {changeOrderResponse}");
+                                if (changeOrderRequest.ItemsRemoved.Count > 0)
+                                {
+                                    ChangeOrderResponse changeOrderResponse = await ChangeOrder(orderId, changeOrderRequest);
+                                    updated = changeOrderResponse != null;
+                                    _context.Vtex.Logger.Info("CheckCancelledOrders", "ChangeOrder", $"ChangeOrderRequest: {JsonConvert.SerializeObject(changeOrderRequest)}  ChangeOrderResponse: {JsonConvert.SerializeObject(changeOrderResponse)}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("CheckCancelledOrders - Skipping...");
+                                }
                             }
 
                             sb.AppendLine($"Order {orderId} updated? {updated}");

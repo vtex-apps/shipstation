@@ -124,6 +124,9 @@ namespace ShipStation.Models
         [JsonProperty("storePreferencesData")]
         public StorePreferencesData StorePreferencesData { get; set; }
 
+        [JsonProperty("changesAttachment")]
+        public ChangesAttachment ChangesAttachment { get; set; }
+
         [JsonProperty("openTextField")]
         public OpenTextField OpenTextField { get; set; }
 
@@ -1154,5 +1157,65 @@ namespace ShipStation.Models
 
         [JsonProperty("Text Style", NullValueHandling = NullValueHandling.Ignore)]
         public string TextStyle { get; set; }
+    }
+
+    public class ChangesAttachment
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("changesData")]
+        public ChangesDatum[] ChangesData { get; set; }
+    }
+
+    public class ChangesDatum
+    {
+        [JsonProperty("reason")]
+        public string Reason { get; set; }
+
+        [JsonProperty("discountValue")]
+        public long DiscountValue { get; set; }
+
+        [JsonProperty("incrementValue")]
+        public long IncrementValue { get; set; }
+
+        [JsonProperty("itemsAdded")]
+        public ChangedItem[] ItemsAdded { get; set; }
+
+        [JsonProperty("itemsRemoved")]
+        public ChangedItem[] ItemsRemoved { get; set; }
+
+        [JsonProperty("receipt")]
+        public Receipt Receipt { get; set; }
+    }
+
+    public class ChangedItem
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("quantity")]
+        public long Quantity { get; set; }
+
+        [JsonProperty("price")]
+        public long Price { get; set; }
+
+        [JsonProperty("unitMultiplier")]
+        public long UnitMultiplier { get; set; }
+    }
+
+    public partial class Receipt
+    {
+        [JsonProperty("date")]
+        public DateTimeOffset Date { get; set; }
+
+        [JsonProperty("orderId")]
+        public string OrderId { get; set; }
+
+        [JsonProperty("receipt")]
+        public Guid ReceiptReceipt { get; set; }
     }
 }
