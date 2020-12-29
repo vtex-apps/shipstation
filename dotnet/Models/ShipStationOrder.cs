@@ -427,7 +427,7 @@ namespace ShipStation.Models
         /// Please see our ShipStation's International Settings KB article to learn how to make this change in the UI.
         /// </summary>
         [JsonProperty("customsItems")]
-        public CustomsItems CustomsItems { get; set; }
+        public object CustomsItems { get; set; }
 
         /// <summary>
         /// Non-Delivery option for international shipment. Available options are: "return_to_sender" or "treat_as_abandoned".
