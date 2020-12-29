@@ -1,7 +1,7 @@
 {
   "name": "ship-station",
   "vendor": "vtex",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "title": "ShipStation",
   "description": "ShipStation API",
   "settingsSchema": {
