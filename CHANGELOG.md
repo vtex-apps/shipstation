@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Added option to use RefId for Sku
+- Added option to send Sku Specifications
+
 ## [0.0.22] - 2020-12-29
 
 ### Changed

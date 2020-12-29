@@ -28,6 +28,8 @@ const initialState = {
   marketplaceOnly: false,
   sendItemDetails: false,
   updateOrderStatus: false,
+  useRefIdAsSku: false,
+  sendSkuDetails: false,
   weightUnit: 'pounds',
 }
 
@@ -64,9 +66,11 @@ const ShipStationAdmin: FC = () => {
       sendItemDetails,
       updateOrderStatus,
       weightUnit,
+      useRefIdAsSku,
+      sendSkuDetails
     } = JSON.parse(data.appSettings?.message || '{}')
 
-      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit })
+      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails })
   }, [data])
 
   // handler to save new settings by executing the 'saveSettings' mutation
@@ -206,6 +210,19 @@ const ShipStationAdmin: FC = () => {
           </div>
           <div className="mt5">
               <Toggle
+                  label="Include Sku Specifications in Item Details"
+                  size="large"
+                  checked={settingsState.sendSkuDetails}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          sendSkuDetails: !settingsState.sendSkuDetails,
+                      })
+                  }
+              />
+          </div>
+          <div className="mt5">
+              <Toggle
                   label="Update order status to 'Start Handing' when order has been sent to ShipStation"
                   size="large"
                   checked={settingsState.updateOrderStatus}
@@ -213,6 +230,19 @@ const ShipStationAdmin: FC = () => {
                       setSettingsState({
                           ...settingsState,
                           updateOrderStatus: !settingsState.updateOrderStatus,
+                      })
+                  }
+              />
+          </div>
+          <div className="mt5">
+              <Toggle
+                  label="Use Reference Code as Sku"
+                  size="large"
+                  checked={settingsState.useRefIdAsSku}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          useRefIdAsSku: !settingsState.useRefIdAsSku,
                       })
                   }
               />

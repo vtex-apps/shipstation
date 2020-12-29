@@ -67,6 +67,16 @@
         "title": "Branded Returns Url",
         "description": "The auto-generated URL from ShipStation Branded Returns",
         "type": "string"
+      },
+      "useRefIdAsSku": {
+        "title": "Use RefId As Sku",
+        "description": "Use the Reference Code as Sku",
+        "type": "boolean"
+      },
+      "sendSkuDetails": {
+        "title": "Send Sku Details",
+        "description": "Send Sku Specifications",
+        "type": "boolean"
       }
     }
   },

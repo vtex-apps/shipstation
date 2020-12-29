@@ -19,5 +19,7 @@ namespace ShipStation.Models
         public bool UpdateOrderStatus { get; set; }
         public bool UseSequenceAsOrderNumber { get; set; }
         public string BrandedReturnsUrl { get; set; }
+        public bool UseRefIdAsSku { get; set; }
+        public bool SendSkuDetails { get; set; }
     }
 }
