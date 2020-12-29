@@ -137,6 +137,12 @@
       "name": "CancelAction"
     },
     {
+      "name": "ShippingAction"
+    },
+    {
+      "name": "Changes"
+    },
+    {
       "name": "outbound-access",
       "attrs": {
         "host": "{{account}}.vtexcommercestable.com.br",

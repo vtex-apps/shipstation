@@ -35,6 +35,8 @@ namespace ShipStation.Data
         public const string SHIPMENT_CHECK = "shipment-check";
         public const string CANCELLED_ORDER_CHECK = "cancelled-order-check";
 
+        public const string ORDER_CHANGE_REASON = "Cancelled by ShipStation";
+
         public class API
         {
             public const string HOST = "ssapi.shipstation.com";
