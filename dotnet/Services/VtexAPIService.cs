@@ -19,7 +19,7 @@ namespace ShipStation.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHttpClientFactory _clientFactory;
         private readonly IShipStationRepository _shipStationRepository;
-        private readonly IShipStationAPIService _shipStationAPIService;        
+        private readonly IShipStationAPIService _shipStationAPIService;
         private readonly string _applicationName;
 
         public VtexAPIService(IIOServiceContext context, IVtexEnvironmentVariableProvider environmentVariableProvider, IHttpContextAccessor httpContextAccessor, IHttpClientFactory clientFactory, IShipStationRepository shipStationRepository, IShipStationAPIService shipStationAPIService)
@@ -291,12 +291,12 @@ namespace ShipStation.Services
                             break;
                         //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
                         case ShipStationConstants.VtexOrderStatus.Cancel:
-                        //case ShipStationConstants.VtexOrderStatus.Handling:
-                        //case ShipStationConstants.VtexOrderStatus.Invoice:
-                        //case ShipStationConstants.VtexOrderStatus.Invoiced:
-                        //case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
-                        //case ShipStationConstants.VtexOrderStatus.OrderCreated:
-                        //case ShipStationConstants.VtexOrderStatus.PaymentPending:
+                            //case ShipStationConstants.VtexOrderStatus.Handling:
+                            //case ShipStationConstants.VtexOrderStatus.Invoice:
+                            //case ShipStationConstants.VtexOrderStatus.Invoiced:
+                            //case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
+                            //case ShipStationConstants.VtexOrderStatus.OrderCreated:
+                            //case ShipStationConstants.VtexOrderStatus.PaymentPending:
                             vtexOrder = await this.GetOrderInformation(hookNotification.OrderId);
                             //if (vtexOrder != null && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace))
                             {
@@ -360,7 +360,7 @@ namespace ShipStation.Services
                                             {
                                                 response = await this.SetOrderStatus(allStatesNotification.OrderId, ShipStationConstants.VtexOrderStatus.StartHanding);
                                             }
-                                            catch(Exception ex)
+                                            catch (Exception ex)
                                             {
                                                 _context.Vtex.Logger.Error("ProcessNotification", "SetOrderStatus", $"Error setting status to start-handling for order {allStatesNotification.OrderId}", ex);
                                             }
@@ -390,7 +390,7 @@ namespace ShipStation.Services
                                 // Check for any orders that were cancelled in ShipStation
                                 await CheckCancelledOrders();
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 _context.Vtex.Logger.Error("ProcessNotification", "CheckCancelledOrders", $"Error checking for Cancelled orders", ex);
                             }
@@ -631,9 +631,9 @@ namespace ShipStation.Services
             return success;
         }
 
-        public async Task<ListAllDocksResponse> ListAllDocks()
+        public async Task<ListAllDocksResponse[]> ListAllDocks()
         {
-            ListAllDocksResponse listAllDocksResponse = null;
+            ListAllDocksResponse[] listAllDocksResponse = null;
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
@@ -659,15 +659,15 @@ namespace ShipStation.Services
             Console.WriteLine($"ListAllDocks [{response.StatusCode}] {responseContent}");
             if (response.IsSuccessStatusCode)
             {
-                listAllDocksResponse = JsonConvert.DeserializeObject<ListAllDocksResponse>(responseContent);
+                listAllDocksResponse = JsonConvert.DeserializeObject<ListAllDocksResponse[]>(responseContent);
             }
 
             return listAllDocksResponse;
         }
 
-        public async Task<ListAllWarehousesResponse> ListAllWarehouses()
+        public async Task<ListAllWarehousesResponse[]> ListAllWarehouses()
         {
-            ListAllWarehousesResponse listAllWarehousesResponse = null;
+            ListAllWarehousesResponse[] listAllWarehousesResponse = null;
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
@@ -693,7 +693,7 @@ namespace ShipStation.Services
             Console.WriteLine($"ListAllWarehouses [{response.StatusCode}] {responseContent}");
             if (response.IsSuccessStatusCode)
             {
-                listAllWarehousesResponse = JsonConvert.DeserializeObject<ListAllWarehousesResponse>(responseContent);
+                listAllWarehousesResponse = JsonConvert.DeserializeObject<ListAllWarehousesResponse[]>(responseContent);
             }
 
             return listAllWarehousesResponse;

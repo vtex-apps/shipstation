@@ -285,6 +285,7 @@ namespace ShipStation.Services
             ResponseWrapper responseWrapper = null;
             if (vtexOrder != null && !string.IsNullOrEmpty(vtexOrder.Status))
             {
+                List<long> advancedOptionsWarehouseIds = new List<long>();
                 string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.ORDERS}/{ShipStationConstants.API.CREATE_ORDER}";
                 MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
                 List<ListWarehousesResponse> listWarehouses = null;
@@ -295,32 +296,10 @@ namespace ShipStation.Services
                     _memoryCache.Set("ListWarehouses", listWarehouses, cacheEntryOptions);
                 }
 
-                //StringBuilder custom1 = new StringBuilder();
-                //var assemblies = vtexOrder.Items.SelectMany(i => i.Assemblies);
-                //foreach (var assembly in assemblies)
-                //{
-                //    foreach (PropertyInfo prop in assembly.GetType().GetProperties())
-                //    {
-                //        var type = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
-                //        try
-                //        {
-                //            custom1.AppendLine(prop.GetValue(assembly, null).ToString());
-                //            Console.WriteLine($"- {type}   {prop.GetValue(assembly, null)}");
-                //        }
-                //        catch(Exception ex)
-                //        {
-                //            Console.WriteLine($"- err - {type}   {ex.Message}");
-                //        }
-
-                //    }
-                //}
-
-                //custom1.AppendJoin("|", assemblies);
-
                 ShipStationOrder createUpdateOrderRequest = new ShipStationOrder();
                 createUpdateOrderRequest.AdvancedOptions = new AdvancedOptions
                 {
-                    
+                    //WarehouseId = 
                 };
 
                 //createUpdateOrderRequest.AmountPaid = ToDollar(vtexOrder.Totals.Sum(t => t.Value));
@@ -344,19 +323,6 @@ namespace ShipStation.Services
                 createUpdateOrderRequest.CarrierCode = null;
                 //createUpdateOrderRequest.Confirmation = ShipStationConstants.ShipStationConfirmation.None;
                 string customerEmail = vtexOrder.ClientProfileData.Email;
-                //if (customerEmail.Contains('-'))
-                //{
-                //    try
-                //    {
-                //        string[] emailArray = customerEmail.Split('-');
-                //        customerEmail = emailArray[0];
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        _context.Vtex.Logger.Error("CreateUpdateOrder", null, $"Error parsing email {customerEmail}", ex);
-                //    }
-                //}
-
                 createUpdateOrderRequest.CustomerEmail = customerEmail;
                 //createUpdateOrderRequest.CustomerId = 0;  // read-only
                 createUpdateOrderRequest.CustomerNotes = CleanString(vtexOrder?.OpenTextField?.Value);
@@ -423,6 +389,7 @@ namespace ShipStation.Services
                 //{
                 //    Console.WriteLine($"Error setting RequestedShippingService: {ex.Message}");
                 //}
+
                 try
                 {
                     createUpdateOrderRequest.RequestedShippingService = vtexOrder.ShippingData.LogisticsInfo.Select(l => l.SelectedSla).FirstOrDefault();
@@ -523,33 +490,43 @@ namespace ShipStation.Services
                         }
 
                         orderItem.Name = CleanString(item.Name);
+                        orderItem.WarehouseLocation = null;
+
+                        //List<DeliveryId> deliveryIds = sla.DeliveryIds;
+                        List<DeliveryId> deliveryIds = logisticsInfo.DeliveryIds;
+                        if (deliveryIds != null)
+                        {
+                            foreach (DeliveryId deliveryId in deliveryIds)
+                            {
+                                //Console.WriteLine($"--------------------------------->     DeliveryId '{deliveryId.WarehouseId}'");
+                                Console.WriteLine($"--------------------------------->     DeliveryId '{deliveryId.DockId}'");
+                            }
+
+                            //orderItem.WarehouseLocation = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
+                            orderItem.WarehouseLocation = deliveryIds.Select(w => w.DockId).FirstOrDefault();
+                            long advancedOptionsWarehouseId = listWarehouses.Where(w => w.WarehouseName.Equals(orderItem.WarehouseLocation)).Select(w => w.WarehouseId).FirstOrDefault();
+                            if (!advancedOptionsWarehouseIds.Contains(advancedOptionsWarehouseId))
+                            {
+                                advancedOptionsWarehouseIds.Add(advancedOptionsWarehouseId);
+                            }
+
+                            Console.WriteLine($"--------------------------------->     Setting Warehouse Id to '{orderItem.WarehouseLocation}'");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"--------------------------------->     NULL DeliveryId !!!");
+                        }
+
                         orderItem.Options = new List<Option>();
 
-                        //foreach (PropertyInfo prop in item.AdditionalInfo.GetType().GetProperties())
-                        //{
-                        //    var type = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
-                        //    try
-                        //    {
-                        //        Option option = new Option
-                        //        {
-                        //            Name = prop.Name,
-                        //            Value = prop.GetValue(item.AdditionalInfo, null).ToString()
-                        //        };
-
-                        //        orderItem.Options.Add(option);
-                        //        Console.WriteLine($"- {type} '{prop.Name}'  {prop.GetValue(item.AdditionalInfo, null)}");
-                        //    }
-                        //    catch (Exception ex)
-                        //    {
-                        //        Console.WriteLine($"- err - {type}   {ex.Message}");
-                        //    }
-                        //}
+                        if(merchantSettings.AddDockToOptions)
+                        {
+                            orderItem.Options.Add(new Option { Name = "Warehouse Location", Value = CleanString(orderItem.WarehouseLocation) });
+                        }
 
                         if (merchantSettings.SendItemDetails)
                         {
-                            //orderItem.Options.Add(new Option { Name = "Brand Id", Value = CleanString(item.AdditionalInfo.BrandId) });
                             orderItem.Options.Add(new Option { Name = "Brand Name", Value = CleanString(item.AdditionalInfo.BrandName) });
-                            //orderItem.Options.Add(new Option { Name = "Categories Ids", Value = CleanString(item.AdditionalInfo.CategoriesIds) });
                             if (item.AdditionalInfo.Categories != null)
                             {
                                 foreach (Category category in item.AdditionalInfo.Categories)
@@ -616,7 +593,6 @@ namespace ShipStation.Services
                         orderItem.TaxAmount = ToDollar(itemTax);
                         orderItem.UnitPrice = ToDollar(item.SellingPrice);
                         orderItem.Upc = item.Ean;
-                        orderItem.WarehouseLocation = null;
                         orderItem.Weight = new Weight
                         {
                             Units = merchantSettings.WeightUnit,
@@ -626,10 +602,11 @@ namespace ShipStation.Services
                         string warehouseId = string.Empty;
                         if (merchantSettings.SplitShipmentByLocation)
                         {
-                            List<DeliveryId> deliveryIds = sla.DeliveryIds;
+                            //List<DeliveryId> deliveryIds = sla.DeliveryIds;
+                            //List<DeliveryId> deliveryIds = logisticsInfo.DeliveryIds;
                             if (deliveryIds != null)
                             {
-                                warehouseId = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
+                                warehouseId = deliveryIds.Select(w => w.DockId).FirstOrDefault();
                                 //Console.WriteLine($"--------------------------------->     Setting Warehouse Id to '{warehouseId}'");
                             }
                         }
@@ -766,6 +743,11 @@ namespace ShipStation.Services
                         {
                             shipStationOrderTemp.AdvancedOptions.WarehouseId = shipStationWarehouseId;
                         }
+                    }
+                    else if(advancedOptionsWarehouseIds.Count == 1)
+                    {
+                        shipStationOrderTemp.AdvancedOptions.WarehouseId = advancedOptionsWarehouseIds[0];
+                        Console.WriteLine($"    === advancedOptionsWarehouseId = {advancedOptionsWarehouseIds[0]}   === ");
                     }
 
                     //shipStationOrderTemp.AdvancedOptions.WarehouseId = warehouseId;
@@ -934,7 +916,7 @@ namespace ShipStation.Services
             CreateWarehouseResponse createWarehouseResponse = null;
             string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.WAREHOUSES}/{ShipStationConstants.API.CREATE_WAREHOUSE}";
             ResponseWrapper responseWrapper = await this.SendRequest(url, createWarehouseRequest);
-            Console.WriteLine($"CreateWarehouse '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            //Console.WriteLine($"CreateWarehouse '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
             _context.Vtex.Logger.Info("CreateWarehouse", null, JsonConvert.SerializeObject(responseWrapper));
 
             if(responseWrapper.IsSuccess)
@@ -943,6 +925,7 @@ namespace ShipStation.Services
             }
             else
             {
+                Console.WriteLine($"CreateWarehouse '{JsonConvert.SerializeObject(createWarehouseResponse)}'");
                 Console.WriteLine($"CreateWarehouse '{responseWrapper.Message}'");
             }
 

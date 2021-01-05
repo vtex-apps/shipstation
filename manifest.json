@@ -77,6 +77,11 @@
         "title": "Send Sku Details",
         "description": "Send Sku Specifications",
         "type": "boolean"
+      },
+      "addDockToOptions": {
+        "title": "Show Dock",
+        "description": "Show Shipping Dock in Item Options",
+        "type": "boolean"
       }
     }
   },
@@ -147,7 +152,7 @@
       "name": "CancelAction"
     },
     {
-      "name": "ShippingAction"
+      "name": "LogisticsViewer"
     },
     {
       "name": "Changes"

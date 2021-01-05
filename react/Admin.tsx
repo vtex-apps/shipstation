@@ -30,6 +30,7 @@ const initialState = {
   updateOrderStatus: false,
   useRefIdAsSku: false,
   sendSkuDetails: false,
+  addDockToOptions: false,
   weightUnit: 'pounds',
 }
 
@@ -67,10 +68,11 @@ const ShipStationAdmin: FC = () => {
       updateOrderStatus,
       weightUnit,
       useRefIdAsSku,
-      sendSkuDetails
+      sendSkuDetails,
+      addDockToOptions
     } = JSON.parse(data.appSettings?.message || '{}')
 
-      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails })
+      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails, addDockToOptions })
   }, [data])
 
   // handler to save new settings by executing the 'saveSettings' mutation
@@ -243,6 +245,19 @@ const ShipStationAdmin: FC = () => {
                       setSettingsState({
                           ...settingsState,
                           useRefIdAsSku: !settingsState.useRefIdAsSku,
+                      })
+                  }
+              />
+          </div>
+          <div className="mt5">
+              <Toggle
+                  label="Show Warehouse Location in Item Details"
+                  size="large"
+                  checked={settingsState.addDockToOptions}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          addDockToOptions: !settingsState.addDockToOptions,
                       })
                   }
               />
