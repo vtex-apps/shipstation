@@ -496,11 +496,11 @@ namespace ShipStation.Services
                         List<DeliveryId> deliveryIds = logisticsInfo.DeliveryIds;
                         if (deliveryIds != null)
                         {
-                            foreach (DeliveryId deliveryId in deliveryIds)
-                            {
-                                //Console.WriteLine($"--------------------------------->     DeliveryId '{deliveryId.WarehouseId}'");
-                                Console.WriteLine($"--------------------------------->     DeliveryId '{deliveryId.DockId}'");
-                            }
+                            //foreach (DeliveryId deliveryId in deliveryIds)
+                            //{
+                            //    //Console.WriteLine($"--------------------------------->     DeliveryId '{deliveryId.WarehouseId}'");
+                            //    Console.WriteLine($"--------------------------------->     DeliveryId '{deliveryId.DockId}'");
+                            //}
 
                             //orderItem.WarehouseLocation = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
                             orderItem.WarehouseLocation = deliveryIds.Select(w => w.DockId).FirstOrDefault();
