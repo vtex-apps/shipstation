@@ -13,6 +13,7 @@
     using System.Web;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
 
     public class RoutesController : Controller
     {
@@ -246,6 +247,57 @@
             Response.Headers.Add("Cache-Control", "private");
             var response = await this._vtexAPIService.CheckCancelledOrders(DateTime.Now);
             return Json(response);
+        }
+
+        public async Task<IActionResult> CreateWarehouses()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            StringBuilder sb = new StringBuilder();
+            var vtexDocks = await _vtexAPIService.ListAllDocks();
+            var shipStationWarehouses = await _shipStationAPIService.ListWarehouses();
+            foreach (ListAllDocksResponse listAllDocksResponse in vtexDocks)
+            {
+                if (!shipStationWarehouses.Any(w => w.WarehouseName.Equals(listAllDocksResponse.Id)))
+                {
+                    try
+                    {
+                        CreateWarehouseRequest createWarehouseRequest = new CreateWarehouseRequest
+                        {
+                            OriginAddress = new NAddress
+                            {
+                                City = listAllDocksResponse.PickupStoreInfo.Address.City,
+                                Company = null,
+                                Country = listAllDocksResponse.PickupStoreInfo.Address.Country.Acronym.Substring(0, 2),
+                                Name = listAllDocksResponse.PickupStoreInfo.FriendlyName ?? listAllDocksResponse.Name,
+                                Phone = "555-555-5555",
+                                PostalCode = listAllDocksResponse.PickupStoreInfo.Address.PostalCode,
+                                Residential = null,
+                                State = listAllDocksResponse.PickupStoreInfo.Address.State,
+                                Street1 = listAllDocksResponse.PickupStoreInfo.Address.Street,
+                                Street2 = listAllDocksResponse.PickupStoreInfo.Address.Complement,
+                                Street3 = null
+                            },
+                            ReturnAddress = null,
+                            IsDefault = false,
+                            WarehouseName = listAllDocksResponse.Id
+                        };
+
+                        var createWarehouseResponse = await _shipStationAPIService.CreateWarehouse(createWarehouseRequest);
+                        sb.AppendLine(JsonConvert.SerializeObject(createWarehouseResponse));
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ERROR: '{listAllDocksResponse.Name}' {ex.Message}");
+                        _context.Vtex.Logger.Error("CreateWarehouses", null, $"Error creating '{listAllDocksResponse.Name}' warehouse.", ex);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Skipping '{listAllDocksResponse.Name}' ");
+                }
+            }
+
+            return Json(sb.ToString());
         }
 
         public string PrintHeaders()

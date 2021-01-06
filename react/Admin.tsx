@@ -17,6 +17,7 @@ import SaveSettings from './graphql/SaveAppSettings.graphql'
 const SETUP_HOOKS_URL = '/ship-station/setup-hooks'
 // const SYNCH_ORDER_URL = '/ship-station/synch-vtex-order/'
 // const LIST_HOOKS_URL = '/ship-station/list-active-webhooks'
+const CREATE_WAREHOUSES_URL = '/ship-station/create-warehouses'
 
 const initialState = {
   apiKey: '',
@@ -30,6 +31,7 @@ const initialState = {
   updateOrderStatus: false,
   useRefIdAsSku: false,
   sendSkuDetails: false,
+  addDockToOptions: false,
   weightUnit: 'pounds',
 }
 
@@ -67,10 +69,11 @@ const ShipStationAdmin: FC = () => {
       updateOrderStatus,
       weightUnit,
       useRefIdAsSku,
-      sendSkuDetails
+      sendSkuDetails,
+      addDockToOptions
     } = JSON.parse(data.appSettings?.message || '{}')
 
-      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails })
+      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails, addDockToOptions })
   }, [data])
 
   // handler to save new settings by executing the 'saveSettings' mutation
@@ -87,6 +90,9 @@ const ShipStationAdmin: FC = () => {
     fetch(SETUP_HOOKS_URL)
   }
   // const listHooks = () => {return JSON.stringify(fetch(LIST_HOOKS_URL))}
+  const handleCreateWarehouses = () => {
+    fetch(CREATE_WAREHOUSES_URL)
+  }
 
   if (!data) return null
 
@@ -247,6 +253,19 @@ const ShipStationAdmin: FC = () => {
                   }
               />
           </div>
+          <div className="mt5">
+              <Toggle
+                  label="Show Warehouse Location in Item Details"
+                  size="large"
+                  checked={settingsState.addDockToOptions}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          addDockToOptions: !settingsState.addDockToOptions,
+                      })
+                  }
+              />
+          </div>
       <div className="mt5">
         <Button
           variation="primary"
@@ -268,6 +287,17 @@ const ShipStationAdmin: FC = () => {
           disabled={!settingsState.apiKey || !settingsState.apiSecret}
         >
           <FormattedMessage id="admin/ship-station.setup-hooks.button" />
+        </Button>
+      </div>
+      <div className="mt5">
+        <Button
+          variation="primary"
+          collapseLeft
+          onClick={() => {
+            handleCreateWarehouses()
+          }}
+        >
+          <FormattedMessage id="admin/ship-station.create-warehouses.button" />
         </Button>
       </div>
     </Layout>

@@ -80,6 +80,10 @@
       "path": "/ship-station/check-cancelled-orders",
       "public": true
     },
+    "createWarehouses": {
+      "path": "/ship-station/create-warehouses",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

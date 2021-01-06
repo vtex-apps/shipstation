@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Option to add Dock name to Item Options
+- Create Warehouses in ShipStation from Vtex Docks
+
 ## [0.0.24] - 2020-12-29
 
 ### Fixed

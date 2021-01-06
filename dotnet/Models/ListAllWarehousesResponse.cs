@@ -15,6 +15,15 @@ namespace ShipStation.Models
 
         [JsonProperty("warehouseDocks")]
         public List<WarehouseDock> WarehouseDocks { get; set; }
+
+        [JsonProperty("pickupPointIds")]
+        public object[] PickupPointIds { get; set; }
+
+        [JsonProperty("priority")]
+        public long Priority { get; set; }
+
+        [JsonProperty("isActive")]
+        public bool IsActive { get; set; }
     }
 
     public class WarehouseDock

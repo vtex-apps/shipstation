@@ -21,5 +21,6 @@ namespace ShipStation.Models
         public string BrandedReturnsUrl { get; set; }
         public bool UseRefIdAsSku { get; set; }
         public bool SendSkuDetails { get; set; }
+        public bool AddDockToOptions { get; set; }
     }
 }

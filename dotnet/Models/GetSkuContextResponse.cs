@@ -140,7 +140,7 @@ namespace ShipStation.Models
         public string[] AlternateIdValues { get; set; }
 
         [JsonProperty("EstimatedDateArrival")]
-        public DateTimeOffset EstimatedDateArrival { get; set; }
+        public string EstimatedDateArrival { get; set; }
 
         [JsonProperty("MeasurementUnit")]
         public string MeasurementUnit { get; set; }
@@ -158,7 +158,7 @@ namespace ShipStation.Models
         public string KeyWords { get; set; }
 
         [JsonProperty("ReleaseDate")]
-        public DateTimeOffset ReleaseDate { get; set; }
+        public string ReleaseDate { get; set; }
 
         [JsonProperty("ProductIsVisible")]
         public bool ProductIsVisible { get; set; }

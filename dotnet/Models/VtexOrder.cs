@@ -947,6 +947,48 @@ namespace ShipStation.Models
 
         [JsonProperty("deliveryChannels")]
         public List<DeliveryChannel> DeliveryChannels { get; set; }
+
+        [JsonProperty("lockTTL")]
+        public string LockTtl { get; set; }
+
+        [JsonProperty("price")]
+        public long Price { get; set; }
+
+        [JsonProperty("listPrice")]
+        public long ListPrice { get; set; }
+
+        [JsonProperty("sellingPrice")]
+        public long SellingPrice { get; set; }
+
+        [JsonProperty("deliveryWindow")]
+        public object DeliveryWindow { get; set; }
+
+        [JsonProperty("deliveryCompany")]
+        public string DeliveryCompany { get; set; }
+
+        [JsonProperty("shippingEstimate")]
+        public string ShippingEstimate { get; set; }
+
+        [JsonProperty("shippingEstimateDate")]
+        public string ShippingEstimateDate { get; set; }
+
+        [JsonProperty("deliveryIds")]
+        public List<DeliveryId> DeliveryIds { get; set; }
+
+        [JsonProperty("deliveryChannel")]
+        public string DeliveryChannel { get; set; }
+
+        [JsonProperty("pickupStoreInfo")]
+        public PickupStoreInfo PickupStoreInfo { get; set; }
+
+        [JsonProperty("polygonName")]
+        public object PolygonName { get; set; }
+
+        [JsonProperty("pickupPointId")]
+        public object PickupPointId { get; set; }
+
+        [JsonProperty("transitTime")]
+        public string TransitTime { get; set; }
     }
 
     public class DeliveryChannel
