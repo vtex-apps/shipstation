@@ -17,6 +17,7 @@ import SaveSettings from './graphql/SaveAppSettings.graphql'
 const SETUP_HOOKS_URL = '/ship-station/setup-hooks'
 // const SYNCH_ORDER_URL = '/ship-station/synch-vtex-order/'
 // const LIST_HOOKS_URL = '/ship-station/list-active-webhooks'
+const CREATE_WAREHOUSES_URL = '/ship-station/create-warehouses'
 
 const initialState = {
   apiKey: '',
@@ -89,6 +90,9 @@ const ShipStationAdmin: FC = () => {
     fetch(SETUP_HOOKS_URL)
   }
   // const listHooks = () => {return JSON.stringify(fetch(LIST_HOOKS_URL))}
+  const handleCreateWarehouses = () => {
+    fetch(CREATE_WAREHOUSES_URL)
+  }
 
   if (!data) return null
 
@@ -283,6 +287,17 @@ const ShipStationAdmin: FC = () => {
           disabled={!settingsState.apiKey || !settingsState.apiSecret}
         >
           <FormattedMessage id="admin/ship-station.setup-hooks.button" />
+        </Button>
+      </div>
+      <div className="mt5">
+        <Button
+          variation="primary"
+          collapseLeft
+          onClick={() => {
+            handleCreateWarehouses()
+          }}
+        >
+          <FormattedMessage id="admin/ship-station.create-warehouses.button" />
         </Button>
       </div>
     </Layout>

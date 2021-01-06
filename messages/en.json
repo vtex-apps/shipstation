@@ -1,5 +1,6 @@
 {
   "admin/ship-station.title": "ShipStation",
   "admin/ship-station.setup-hooks.button": "Create WebHook",
-  "admin/ship-station.save-settings.button": "Save Settings"
+  "admin/ship-station.save-settings.button": "Save Settings",
+  "admin/ship-station.create-warehouses.button": "Create Warehouses"
 }
