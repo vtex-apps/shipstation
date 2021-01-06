@@ -254,38 +254,46 @@
             Response.Headers.Add("Cache-Control", "private");
             StringBuilder sb = new StringBuilder();
             var vtexDocks = await _vtexAPIService.ListAllDocks();
-            foreach(ListAllDocksResponse listAllDocksResponse in vtexDocks)
+            var shipStationWarehouses = await _shipStationAPIService.ListWarehouses();
+            foreach (ListAllDocksResponse listAllDocksResponse in vtexDocks)
             {
-                try
+                if (!shipStationWarehouses.Any(w => w.WarehouseName.Equals(listAllDocksResponse.Id)))
                 {
-                    CreateWarehouseRequest createWarehouseRequest = new CreateWarehouseRequest
+                    try
                     {
-                        OriginAddress = new NAddress
+                        CreateWarehouseRequest createWarehouseRequest = new CreateWarehouseRequest
                         {
-                            City = listAllDocksResponse.PickupStoreInfo.Address.City,
-                            Company = null,
-                            Country = listAllDocksResponse.PickupStoreInfo.Address.Country.Acronym.Substring(0,2),
-                            Name = listAllDocksResponse.PickupStoreInfo.FriendlyName ?? listAllDocksResponse.Name,
-                            Phone = "555-555-5555",
-                            PostalCode = listAllDocksResponse.PickupStoreInfo.Address.PostalCode,
-                            Residential = null,
-                            State = listAllDocksResponse.PickupStoreInfo.Address.State,
-                            Street1 = listAllDocksResponse.PickupStoreInfo.Address.Street,
-                            Street2 = listAllDocksResponse.PickupStoreInfo.Address.Complement,
-                            Street3 = null
-                        },
-                        ReturnAddress = null,
-                        IsDefault = false,
-                        WarehouseName = listAllDocksResponse.Id
-                    };
+                            OriginAddress = new NAddress
+                            {
+                                City = listAllDocksResponse.PickupStoreInfo.Address.City,
+                                Company = null,
+                                Country = listAllDocksResponse.PickupStoreInfo.Address.Country.Acronym.Substring(0, 2),
+                                Name = listAllDocksResponse.PickupStoreInfo.FriendlyName ?? listAllDocksResponse.Name,
+                                Phone = "555-555-5555",
+                                PostalCode = listAllDocksResponse.PickupStoreInfo.Address.PostalCode,
+                                Residential = null,
+                                State = listAllDocksResponse.PickupStoreInfo.Address.State,
+                                Street1 = listAllDocksResponse.PickupStoreInfo.Address.Street,
+                                Street2 = listAllDocksResponse.PickupStoreInfo.Address.Complement,
+                                Street3 = null
+                            },
+                            ReturnAddress = null,
+                            IsDefault = false,
+                            WarehouseName = listAllDocksResponse.Id
+                        };
 
-                    var createWarehouseResponse = await _shipStationAPIService.CreateWarehouse(createWarehouseRequest);
-                    sb.AppendLine(JsonConvert.SerializeObject(createWarehouseResponse));
+                        var createWarehouseResponse = await _shipStationAPIService.CreateWarehouse(createWarehouseRequest);
+                        sb.AppendLine(JsonConvert.SerializeObject(createWarehouseResponse));
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ERROR: '{listAllDocksResponse.Name}' {ex.Message}");
+                        _context.Vtex.Logger.Error("CreateWarehouses", null, $"Error creating '{listAllDocksResponse.Name}' warehouse.", ex);
+                    }
                 }
-                catch(Exception ex)
+                else
                 {
-                    Console.WriteLine($"ERROR: '{listAllDocksResponse.Name}' {ex.Message}");
-                    _context.Vtex.Logger.Error("CreateWarehouses", null, $"Error creating '{listAllDocksResponse.Name}' warehouse.", ex);
+                    Console.WriteLine($"Skipping '{listAllDocksResponse.Name}' ");
                 }
             }
 
