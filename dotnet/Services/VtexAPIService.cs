@@ -250,6 +250,56 @@ namespace ShipStation.Services
             return vtexOrder;
         }
 
+        public async Task<VtexOrderList> ListOrders(string queryString)
+        {
+            VtexOrderList vtexOrderList = new VtexOrderList();
+
+            try
+            {
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.{ShipStationConstants.ENVIRONMENT}.com.br/api/oms/pvt/orders?{queryString}")
+                };
+
+                request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+                //request.Headers.Add(Constants.ACCEPT, Constants.APPLICATION_JSON);
+                //request.Headers.Add(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+                string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+                //Console.WriteLine($"Token = '{authToken}'");
+                if (authToken != null)
+                {
+                    request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                    request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                    request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+                }
+
+                //StringBuilder sb = new StringBuilder();
+
+                var client = _clientFactory.CreateClient();
+                var response = await client.SendAsync(request);
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    vtexOrderList = JsonConvert.DeserializeObject<VtexOrderList>(responseContent);
+                    Console.WriteLine($"ListOrders: [{response.StatusCode}] ");
+                }
+                else
+                {
+                    Console.WriteLine($"ListOrders: [{response.StatusCode}] '{responseContent}'");
+                    _context.Vtex.Logger.Info("ListOrders", null, $"[{response.StatusCode}] '{responseContent}'");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ListOrders Error: {ex.Message}");
+                _context.Vtex.Logger.Error("ListOrders", null, $"Error", ex);
+            }
+
+            return vtexOrderList;
+        }
+
         public async Task<bool> ProcessNotification(HookNotification hookNotification)
         {
             bool success = true;
@@ -336,6 +386,8 @@ namespace ShipStation.Services
                     switch (allStatesNotification.CurrentState)
                     {
                         case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
+                        case ShipStationConstants.VtexOrderStatus.Handling:
+                        case ShipStationConstants.VtexOrderStatus.StartHanding:
                             vtexOrder = await this.GetOrderInformation(allStatesNotification.OrderId);
                             if (vtexOrder != null)
                             {
@@ -398,7 +450,6 @@ namespace ShipStation.Services
                             break;
                         //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
                         case ShipStationConstants.VtexOrderStatus.Cancel:
-                            //case ShipStationConstants.VtexOrderStatus.Handling:
                             //case ShipStationConstants.VtexOrderStatus.Invoice:
                             //case ShipStationConstants.VtexOrderStatus.Invoiced:
                             //case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:

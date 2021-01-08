@@ -84,6 +84,21 @@
                 {
                     status = Ok();
                 }
+
+                //double daysDiff = 0d;
+                //try
+                //{
+                //    DateTime lastCheck = await this._shipStationRepository.GetLastShipmentCheck();
+                //    daysDiff = (DateTime.Now - lastCheck).TotalDays;
+                //    if (daysDiff > 0)
+                //    {
+                //        await this.VerifyOrders(daysDiff);
+                //    }
+                //}
+                //catch(Exception ex)
+                //{
+                //    _context.Vtex.Logger.Error("VerifyOrders", null, $"Error Verifying orders for past {daysDiff}", ex);
+                //}
             }
 
             Response.Headers.Add("Cache-Control", "private");
@@ -296,6 +311,37 @@
                     Console.WriteLine($"Skipping '{listAllDocksResponse.Name}' ");
                 }
             }
+
+            return Json(sb.ToString());
+        }
+
+        public async Task<IActionResult> VerifyOrders(double days)
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            StringBuilder sb = new StringBuilder();
+            string createDateStart = DateTime.Now.AddDays(-days).ToString();
+            //return Json(createDateStart);
+            //Console.WriteLine($"createDateStart={createDateStart}");
+            ListOrdersResponse response = await this._shipStationAPIService.ListOrders($"pageSize=500&createDateStart={createDateStart}");
+            var shipStationOrders = response.Orders.Select(o => o.OrderNumber);
+            //return Json(shipStationOrders);
+            // creationDate:[2016-01-01T02:00:00.000Z TO 2021-01-01T01:59:59.999Z]
+            VtexOrderList vtexOrderList = await this._vtexAPIService.ListOrders($"f_creationDate=creationDate:[{DateTime.Now.AddDays(-days):yyyy-MM-ddTHH:mm:00Z} TO {DateTime.Now:yyyy-MM-ddTHH:mm:00Z}]");
+            var vtexOrders = vtexOrderList.List.Select(o => o.OrderId);
+            foreach (string orderId in vtexOrders)
+            {
+                if (!shipStationOrders.Contains(orderId))
+                {
+                    Console.WriteLine($"Missed Order {orderId} !!!");
+                    VtexOrder vtexOrder = await _vtexAPIService.GetOrderInformation(orderId);
+                    bool success = await _shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                    sb.AppendLine($"Order:{orderId} Sent?{success}");
+                    //sb.AppendLine($"Order:{orderId} Sent?");
+                }
+            }
+
+            Console.WriteLine($"    -----[ RESULTS: {sb}");
+            _context.Vtex.Logger.Warn("VerifyOrders", null, sb.ToString());
 
             return Json(sb.ToString());
         }

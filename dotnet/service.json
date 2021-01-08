@@ -84,6 +84,10 @@
       "path": "/ship-station/create-warehouses",
       "public": true
     },
+    "verifyOrders": {
+      "path": "/ship-station/verify-orders/:days",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

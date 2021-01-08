@@ -18,5 +18,6 @@ namespace ShipStation.Services
         Task<string> ValidateShipments(string date);
         Task<string> ValidateOrderShipments(string orderId);
         Task<string> CheckCancelledOrders(DateTime date);
+        Task<VtexOrderList> ListOrders(string queryString);
     }
 }
