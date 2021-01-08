@@ -147,11 +147,11 @@
             }
             else
             {
-                await this.SetLastShipmentCheck(lastCheck.AddDays(-1));
+                await this.SetLastShipmentCheck(lastCheck.AddDays(-7));
             }
 
             // DEBUG !!!!
-            lastCheck = DateTime.Now.AddHours(-72);
+            //lastCheck = DateTime.Now.AddHours(-72);
             // DEBUG !!!!
 
             return lastCheck;
