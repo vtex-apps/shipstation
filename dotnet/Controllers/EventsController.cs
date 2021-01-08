@@ -40,6 +40,8 @@ namespace service.Controllers
             string bodyAsText = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEndAsync().Result;
             //Console.WriteLine($"[AllStates Notification] : '{bodyAsText}'");
             AllStatesNotification allStatesNotification = JsonConvert.DeserializeObject<AllStatesNotification>(bodyAsText);
+            _context.Vtex.Logger.Debug("Order Broadcast", null, $"Notification {bodyAsText}");
+            Console.WriteLine($"Notification: Order {allStatesNotification.OrderId} [{allStatesNotification.CurrentState}]");
             bool success = _vtexAPIService.ProcessNotification(allStatesNotification).Result;
             if(!success)
             {

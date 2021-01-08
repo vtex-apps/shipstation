@@ -884,13 +884,31 @@ namespace ShipStation.Services
         public async Task<ListShipmentsResponse> ListShipments(string queryPrameters)
         {
             ListShipmentsResponse response = null;
+            ResponseWrapper responseWrapper = null;
             string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.SHIPMENTS}?{queryPrameters}";
-            ResponseWrapper responseWrapper = await this.GetRequest(url);
-            //Console.WriteLine($"ListShipments '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
-            _context.Vtex.Logger.Info("ListShipments", null, JsonConvert.SerializeObject(responseWrapper));
+            try
+            {
+                responseWrapper = await this.GetRequest(url);
+            }
+            catch(Exception ex)
+            {
+                _context.Vtex.Logger.Error("ListShipments", "GetRequest", $"queryPrameters='{queryPrameters}'", ex);
+                Console.WriteLine($"ListShipments GetRequest ERROR: {ex.Message}");
+            }
+
+            Console.WriteLine($"ListShipments '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
+            //_context.Vtex.Logger.Info("ListShipments", null, JsonConvert.SerializeObject(responseWrapper));
             if (responseWrapper.IsSuccess)
             {
-                response = JsonConvert.DeserializeObject<ListShipmentsResponse>(responseWrapper.ResponseText);
+                try
+                {
+                    response = JsonConvert.DeserializeObject<ListShipmentsResponse>(responseWrapper.ResponseText);
+                }
+                catch(Exception ex)
+                {
+                    _context.Vtex.Logger.Error("ListShipments", "DeserializeObject", $"queryPrameters='{queryPrameters}'", ex);
+                    Console.WriteLine($"ListShipments DeserializeObject ERROR: {ex.Message}");
+                }
             }
 
             return response;

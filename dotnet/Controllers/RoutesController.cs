@@ -205,10 +205,10 @@
         public async Task<IActionResult> ListShipments()
         {
             Response.Headers.Add("Cache-Control", "private");
-            //bool success = await this._vtexAPIService.CreateOrUpdateHook();
             var response = await this._shipStationAPIService.ListShipments(string.Empty);
-            //return Json($"Vtex Order Hook? {success} - ShipStation Webhook: {response}");
-            return Json(response);
+            //Console.WriteLine($"response.Total = {response.Total}");
+            string responseMsg = JsonConvert.SerializeObject(response);
+            return Json(responseMsg);
         }
 
         public async Task<IActionResult> ListOrders()
