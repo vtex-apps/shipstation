@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.27] - 2021-01-08
+
 ### Changed
 
 - Send order to ShipStation on handling and start-handling
