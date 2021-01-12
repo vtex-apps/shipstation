@@ -82,6 +82,11 @@
         "title": "Show Dock",
         "description": "Show Shipping Dock in Item Options",
         "type": "boolean"
+      },
+      "showPaymentMethod": {
+        "title": "Show Payment Method",
+        "description": "Add Payemnt Method to Custom field 1",
+        "type": "boolean"
       }
     }
   },

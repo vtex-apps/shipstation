@@ -364,12 +364,21 @@ namespace ShipStation.Services
                 {
                     createUpdateOrderRequest.PaymentDate = vtexOrder.ReceiptData.ReceiptCollection.Select(r => r.Date).FirstOrDefault();
                 }
+                //else
+                //{
+                //    createUpdateOrderRequest.PaymentDate = vtexOrder.AuthorizedDate;
+                //}
 
                 List<string> paymentMethods = new List<string>();
                 // Need to find format for gift cards
                 //paymentMethods.AddRange(vtexOrder.PaymentData.GiftCards.)
                 paymentMethods.AddRange(vtexOrder.PaymentData.Transactions.SelectMany(t => t.Payments).Select(p => p.PaymentSystemName).Distinct().ToList());
                 createUpdateOrderRequest.PaymentMethod = String.Join(", ", paymentMethods.ToArray());
+                if(merchantSettings.ShowPaymentMethod)
+                {
+                    createUpdateOrderRequest.AdvancedOptions.CustomField1 = $"PaymentMethod: {createUpdateOrderRequest.PaymentMethod}";
+                }
+
                 //if(vtexOrder.ShippingData != null && vtexOrder.ShippingData.LogisticsInfo != null)
                 //{
                 //    var slas = vtexOrder.ShippingData.LogisticsInfo.SelectMany(l => l.Slas);

@@ -387,8 +387,9 @@ namespace ShipStation.Services
                     {
                         case ShipStationConstants.VtexOrderStatus.Handling:
                         case ShipStationConstants.VtexOrderStatus.StartHanding:
-                            string createDateStart = DateTime.Now.AddHours(-12).ToString();
-                            ListOrdersResponse listOrdersResponse = await this._shipStationAPIService.ListOrders($"pageSize=500&createDateStart={createDateStart}");
+                            //string createDateStart = DateTime.Now.AddHours(-12).ToString();
+                            //ListOrdersResponse listOrdersResponse = await this._shipStationAPIService.ListOrders($"pageSize=500&createDateStart={createDateStart}");
+                            ListOrdersResponse listOrdersResponse = await this._shipStationAPIService.ListOrders($"orderNumber={allStatesNotification.OrderId}");
                             var shipStationOrders = listOrdersResponse.Orders.Select(o => o.OrderNumber);
                             if (!shipStationOrders.Contains(allStatesNotification.OrderId))
                             {
@@ -503,6 +504,18 @@ namespace ShipStation.Services
             {
                 _context.Vtex.Logger.Error("ProcessNotification", "SendOrderToShipStation", $"Error sending {orderId} to ShipStation.", ex);
             }
+
+            //if(success)
+            //{
+            //    try
+            //    {
+            //        this.AddOrderComment("Order sent to ShipStation", orderId);
+            //    }
+            //    catch(Exception ex)
+            //    {
+            //        Console.WriteLine($"ERROR: {ex.Message}");
+            //    }
+            //}
 
             return success;
         }
@@ -1023,6 +1036,53 @@ namespace ShipStation.Services
             }
 
             return changeOrderResponse;
+        }
+
+        public async Task<bool> AddOrderComment(string message, string orderId)
+        {
+            OrderComment orderComment = new OrderComment
+            {
+                Description = message,
+                Domain = ShipStationConstants.CommentDomain,
+                Target = new Target
+                {
+                    Id = orderId,
+                    Type = ShipStationConstants.CommentType,
+                    Url = $"/orders/{orderId}"
+                }
+            };
+
+            var jsonSerializedMessage = JsonConvert.SerializeObject(orderComment);
+
+            Console.WriteLine($"Sending {jsonSerializedMessage} to http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.{ShipStationConstants.ENVIRONMENT}.com.br/api/do/notes");
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.{ShipStationConstants.ENVIRONMENT}.com.br/api/do/notes"),
+                Content = new StringContent(jsonSerializedMessage, Encoding.UTF8, ShipStationConstants.APPLICATION_JSON)
+            };
+
+            request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+            string authToken = _context.Vtex.AuthToken;
+            if (authToken != null && authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+            }
+            else
+            {
+                Console.WriteLine("Missing Token!");
+            }
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[-] AddOrderComment Response {response.StatusCode} Content = '{responseContent}' [-]");
+            _context.Vtex.Logger.Info("AddOrderComment", null, $"{jsonSerializedMessage} [{response.StatusCode}] {responseContent}");
+
+            return response.IsSuccessStatusCode;
         }
 
         private long ToCents(double asDollars)

@@ -37,6 +37,10 @@ namespace ShipStation.Data
 
         public const string ORDER_CHANGE_REASON = "Cancelled by ShipStation";
 
+        // Order Comment
+        public const string CommentDomain = "oms";
+        public const string CommentType = "order";
+
         public class API
         {
             public const string HOST = "ssapi.shipstation.com";
