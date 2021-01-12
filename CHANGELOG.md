@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.28] - 2021-01-12
+
 - Check for missed order on handling and start-handling notification
 
 ## [0.0.27] - 2021-01-08
