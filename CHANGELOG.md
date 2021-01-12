@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.29] - 2021-01-12
+
 ### Added
 
 - Option to show Payment Method in Custom 1
