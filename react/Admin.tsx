@@ -32,6 +32,7 @@ const initialState = {
   useRefIdAsSku: false,
   sendSkuDetails: false,
   addDockToOptions: false,
+  showPaymentMethod: false,
   weightUnit: 'pounds',
 }
 
@@ -70,10 +71,11 @@ const ShipStationAdmin: FC = () => {
       weightUnit,
       useRefIdAsSku,
       sendSkuDetails,
-      addDockToOptions
+      addDockToOptions,
+      showPaymentMethod
     } = JSON.parse(data.appSettings?.message || '{}')
 
-      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails, addDockToOptions })
+      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails, addDockToOptions, showPaymentMethod })
   }, [data])
 
   // handler to save new settings by executing the 'saveSettings' mutation
@@ -262,6 +264,19 @@ const ShipStationAdmin: FC = () => {
                       setSettingsState({
                           ...settingsState,
                           addDockToOptions: !settingsState.addDockToOptions,
+                      })
+                  }
+              />
+          </div>
+          <div className="mt5">
+              <Toggle
+                  label="Add Payemnt Method to Custom field 1"
+                  size="large"
+                  checked={settingsState.showPaymentMethod}
+                  onChange={() =>
+                      setSettingsState({
+                          ...settingsState,
+                          showPaymentMethod: !settingsState.showPaymentMethod,
                       })
                   }
               />

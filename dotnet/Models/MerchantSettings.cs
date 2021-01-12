@@ -22,5 +22,6 @@ namespace ShipStation.Models
         public bool UseRefIdAsSku { get; set; }
         public bool SendSkuDetails { get; set; }
         public bool AddDockToOptions { get; set; }
+        public bool ShowPaymentMethod { get; set; }
     }
 }

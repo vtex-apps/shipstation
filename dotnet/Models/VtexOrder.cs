@@ -192,6 +192,9 @@ namespace ShipStation.Models
 
         [JsonProperty("allowChangeSeller")]
         public bool? AllowChangeSeller { get; set; }
+
+        [JsonProperty("authorizedDate")]
+        public string AuthorizedDate { get; set; }
     }
 
     public class ClientPreferencesData

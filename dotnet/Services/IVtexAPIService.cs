@@ -19,5 +19,6 @@ namespace ShipStation.Services
         Task<string> ValidateOrderShipments(string orderId);
         Task<string> CheckCancelledOrders(DateTime date);
         Task<VtexOrderList> ListOrders(string queryString);
+        Task<bool> AddOrderComment(string message, string orderId);
     }
 }

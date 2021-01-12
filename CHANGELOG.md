@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Option to show Payment Method in Custom 1
+
 ## [0.0.28] - 2021-01-12
 
 - Check for missed order on handling and start-handling notification
