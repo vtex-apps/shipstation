@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ShipStation.Models
 {
-    public class ListAllDocksResponse
+    public class ListVtexDocksResponse
     {
         [JsonProperty("id")]
         public string Id { get; set; }

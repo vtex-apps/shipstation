@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Use dock name for warehouse name in item options
+
 ## [0.0.29] - 2021-01-12
 
 ### Added
