@@ -32,7 +32,7 @@
       "path": "/ship-station/set-order-status/:orderId/:orderStatus",
       "public": true
     },
-    "listAllDocks": {
+    "ListVtexDocks": {
       "path": "/ship-station/list-all-docks",
       "public": true
     },

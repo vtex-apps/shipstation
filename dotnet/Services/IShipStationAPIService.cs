@@ -16,5 +16,6 @@ namespace ShipStation.Services
         Task<CreateWarehouseResponse> CreateWarehouse(CreateWarehouseRequest createWarehouseRequest);
         Task<List<ListWarehousesResponse>> ListWarehouses();
         Task<List<ListStoresResponse>> ListStores();
+        Task<ListVtexDocksResponse[]> ListVtexDocks();
     }
 }

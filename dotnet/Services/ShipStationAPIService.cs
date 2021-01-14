@@ -289,11 +289,22 @@ namespace ShipStation.Services
                 string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.ORDERS}/{ShipStationConstants.API.CREATE_ORDER}";
                 MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
                 List<ListWarehousesResponse> listWarehouses = null;
+                ListVtexDocksResponse[] listVtexDocks = null;
                 if (!_memoryCache.TryGetValue("ListWarehouses", out listWarehouses))
                 {
                     listWarehouses = await this.ListWarehouses();
                     var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(1));
                     _memoryCache.Set("ListWarehouses", listWarehouses, cacheEntryOptions);
+                }
+
+                if (merchantSettings.AddDockToOptions)
+                {
+                    if (!_memoryCache.TryGetValue("ListVtexDocks", out listVtexDocks))
+                    {
+                        listVtexDocks = await this.ListVtexDocks();
+                        var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(1));
+                        _memoryCache.Set("ListVtexDocks", listVtexDocks, cacheEntryOptions);
+                    }
                 }
 
                 ShipStationOrder createUpdateOrderRequest = new ShipStationOrder();
@@ -530,7 +541,8 @@ namespace ShipStation.Services
 
                         if(merchantSettings.AddDockToOptions)
                         {
-                            orderItem.Options.Add(new Option { Name = "Warehouse Location", Value = CleanString(orderItem.WarehouseLocation) });
+                            string itemDockName = listVtexDocks.Where(d => d.Id.Equals(orderItem.WarehouseLocation)).Select(d => d.Name).FirstOrDefault();
+                            orderItem.Options.Add(new Option { Name = "Warehouse Location", Value = CleanString(itemDockName) });
                         }
 
                         if (merchantSettings.SendItemDetails)
@@ -1063,6 +1075,40 @@ namespace ShipStation.Services
             }
 
             return getSkuContextResponse;
+        }
+
+        public async Task<ListVtexDocksResponse[]> ListVtexDocks()
+        {
+            ListVtexDocksResponse[] ListVtexDocksResponse = null;
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/logistics/pvt/configuration/docks")
+            };
+
+            request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"ListVtexDocks [{response.StatusCode}] {responseContent}");
+            if (response.IsSuccessStatusCode)
+            {
+                ListVtexDocksResponse = JsonConvert.DeserializeObject<ListVtexDocksResponse[]>(responseContent);
+            }
+
+            return ListVtexDocksResponse;
         }
     }
 }

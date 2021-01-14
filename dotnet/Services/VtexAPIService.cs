@@ -505,13 +505,13 @@ namespace ShipStation.Services
                 _context.Vtex.Logger.Error("ProcessNotification", "SendOrderToShipStation", $"Error sending {orderId} to ShipStation.", ex);
             }
 
-            //if(success)
+            //if (success)
             //{
             //    try
             //    {
             //        this.AddOrderComment("Order sent to ShipStation", orderId);
             //    }
-            //    catch(Exception ex)
+            //    catch (Exception ex)
             //    {
             //        Console.WriteLine($"ERROR: {ex.Message}");
             //    }
@@ -719,40 +719,6 @@ namespace ShipStation.Services
             _context.Vtex.Logger.Info("ProcessShipNotification", null, sb.ToString());
 
             return success;
-        }
-
-        public async Task<ListAllDocksResponse[]> ListAllDocks()
-        {
-            ListAllDocksResponse[] listAllDocksResponse = null;
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/logistics/pvt/configuration/docks")
-            };
-
-            request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
-            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
-            if (authToken != null)
-            {
-                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
-                request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
-                request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
-            }
-
-            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
-            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
-            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
-
-            var client = _clientFactory.CreateClient();
-            var response = await client.SendAsync(request);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"ListAllDocks [{response.StatusCode}] {responseContent}");
-            if (response.IsSuccessStatusCode)
-            {
-                listAllDocksResponse = JsonConvert.DeserializeObject<ListAllDocksResponse[]>(responseContent);
-            }
-
-            return listAllDocksResponse;
         }
 
         public async Task<ListAllWarehousesResponse[]> ListAllWarehouses()
