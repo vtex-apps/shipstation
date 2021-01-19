@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Add UPC to item options
 
+## [0.0.30] - 2021-01-14
+
 ### Changed
 
 - Use dock name for warehouse name in item options
