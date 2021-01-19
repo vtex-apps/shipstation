@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Typos
+
+### Added
+
+- Add UPC to item options
+
 ### Changed
 
 - Use dock name for warehouse name in item options
