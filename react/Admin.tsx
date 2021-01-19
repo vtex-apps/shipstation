@@ -270,7 +270,7 @@ const ShipStationAdmin: FC = () => {
           </div>
           <div className="mt5">
               <Toggle
-                  label="Add Payemnt Method to Custom field 1"
+                  label="Add Payment Method to Custom field 1"
                   size="large"
                   checked={settingsState.showPaymentMethod}
                   onChange={() =>

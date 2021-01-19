@@ -85,7 +85,7 @@
       },
       "showPaymentMethod": {
         "title": "Show Payment Method",
-        "description": "Add Payemnt Method to Custom field 1",
+        "description": "Add Payment Method to Custom field 1",
         "type": "boolean"
       }
     }

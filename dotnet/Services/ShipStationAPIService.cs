@@ -559,6 +559,8 @@ namespace ShipStation.Services
 
                         if(merchantSettings.SendSkuDetails)
                         {
+                            orderItem.Options.Add(new Option { Name = "UPC", Value = CleanString(item.Ean) });
+
                             GetSkuContextResponse skuContext = await this.GetSkuContext(item.SellerSku);
                             if(skuContext != null && skuContext.SkuSpecifications != null)
                             {
