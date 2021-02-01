@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- For split shipments get tax from orderform
+
 ## [0.0.31] - 2021-01-19
 
 ### Fixed

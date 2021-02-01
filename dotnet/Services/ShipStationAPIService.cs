@@ -282,7 +282,7 @@ namespace ShipStation.Services
 
         public async Task<bool> CreateUpdateOrder(VtexOrder vtexOrder)
         {
-            ResponseWrapper responseWrapper = null;
+            ResponseWrapper responseWrapper = new ResponseWrapper();
             if (vtexOrder != null && !string.IsNullOrEmpty(vtexOrder.Status))
             {
                 List<long> advancedOptionsWarehouseIds = new List<long>();
@@ -496,7 +496,7 @@ namespace ShipStation.Services
                         OrderItem orderItem = new OrderItem();
                         orderItem.Adjustment = false;
                         orderItem.ImageUrl = item.ImageUrl;
-                        orderItem.LineItemKey = item.Id;
+                        orderItem.LineItemKey = itemIndex.ToString();
 
                         if (merchantSettings.UseRefIdAsSku)
                         {

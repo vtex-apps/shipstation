@@ -231,7 +231,8 @@
             Response.Headers.Add("Cache-Control", "private");
             string createDateStart = DateTime.Now.AddHours(-12).ToString();
             Console.WriteLine($"createDateStart = {createDateStart}");
-            var response = await this._shipStationAPIService.ListOrders($"pageSize=500&createDateStart={createDateStart}");
+            //var response = await this._shipStationAPIService.ListOrders($"pageSize=500&createDateStart={createDateStart}");
+            var response = await this._shipStationAPIService.ListOrders("orderNumber=1106431224289-01");
             return Json(response);
         }
 
