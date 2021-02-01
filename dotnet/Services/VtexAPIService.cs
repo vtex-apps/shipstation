@@ -652,30 +652,52 @@ namespace ShipStation.Services
                             Console.WriteLine($"Item '{shipmentItem.Name}' '{sku}' ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
                             sb.AppendLine($"Item '{shipmentItem.Name}' '{sku}' ({shipmentItem.Quantity}) ${shipmentItem.UnitPrice}");
 
-                            //LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemId.Equals(sku)).FirstOrDefault();
-                            //Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
-
-                            //VtexOrderItem item = vtexOrder.Items.Where(i => i.Id.Equals(shipmentItem.Sku)).FirstOrDefault();
-                            //long itemTax = 0l;
-                            //foreach (PriceTag priceTag in item.PriceTags)
-                            //{
-                            //    string name = priceTag.Name.ToLower();
-                            //    if (name.Contains("tax@") || name.Contains("taxhub@"))
-                            //    {
-                            //        if (priceTag.IsPercentual ?? false)
-                            //        {
-                            //            itemTax += (long)(item.SellingPrice * priceTag.RawValue);
-                            //        }
-                            //        else
-                            //        {
-                            //            itemTax += priceTag.Value;
-                            //        }
-                            //    }
-                            //}
-
                             long itemPrice = ToCents(shipmentItem.UnitPrice) * shipmentItem.Quantity;
                             long itemTax = ToCents(shipmentItem.TaxAmount ?? 0d);
                             long shippingCost = ToCents(shipmentItem.ShippingAmount ?? 0d);
+
+                            if (shipmentItem.LineItemKey != shipmentItem.Sku)
+                            {
+                                LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemIndex.ToString().Equals(shipmentItem.LineItemKey)).FirstOrDefault();
+                                if (logisticsInfo != null)
+                                {
+                                    Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
+                                    if (sla != null)
+                                    {
+                                        //VtexOrderItem item = vtexOrder.Items.Where(i => i.Id.Equals(shipmentItem.LineItemKey)).FirstOrDefault();
+                                        VtexOrderItem item = vtexOrder.Items[int.Parse(shipmentItem.LineItemKey)];
+                                        itemTax = 0L;
+                                        foreach (PriceTag priceTag in item.PriceTags)
+                                        {
+                                            string name = priceTag.Name.ToLower();
+                                            if (name.Contains("tax@") || name.Contains("taxhub@"))
+                                            {
+                                                if (priceTag.IsPercentual ?? false)
+                                                {
+                                                    itemTax += (long)Math.Round(item.SellingPrice * priceTag.RawValue, MidpointRounding.AwayFromZero);
+                                                }
+                                                else
+                                                {
+                                                    itemTax += priceTag.Value;
+                                                }
+                                            }
+                                        }
+
+                                        itemPrice = item.SellingPrice * item.Quantity;
+                                        shippingCost = sla.Price;
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"Null Sla logisticsInfo.SelectedSla: {logisticsInfo.SelectedSla}");
+                                        sb.AppendLine($"Null Sla logisticsInfo.SelectedSla: {logisticsInfo.SelectedSla}");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Null LogisticsInfo shipmentItem.LineItemKey: {shipmentItem.LineItemKey}");
+                                    sb.AppendLine($"Null LogisticsInfo shipmentItem.LineItemKey: {shipmentItem.LineItemKey}");
+                                }
+                            }
 
                             InvoiceItem invoiceItem = new InvoiceItem
                             {
@@ -918,7 +940,7 @@ namespace ShipStation.Services
 
                                             ChangeItem changeItem = new ChangeItem
                                             {
-                                                Id = cancelledItem.LineItemKey,
+                                                Id = cancelledItem.Sku,
                                                 Price = (long)(cancelledItem.UnitPrice * 100) * cancelledItem.Quantity,
                                                 Quantity = cancelledItem.Quantity
                                             };
@@ -933,7 +955,7 @@ namespace ShipStation.Services
                                     {
                                         ChangeItem changeItem = new ChangeItem
                                         {
-                                            Id = cancelledItem.LineItemKey,
+                                            Id = cancelledItem.Sku,
                                             Price = (long)(cancelledItem.UnitPrice * 100) * cancelledItem.Quantity,
                                             Quantity = cancelledItem.Quantity
                                         };

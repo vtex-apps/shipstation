@@ -106,6 +106,7 @@
     "postreleasy": "vtex publish --verbose"
   },
   "billingOptions": {
+    "setupRoute": "/admin/app/ship-station/",
     "termsURL": "https://support.vtex.com/hc/requests",
     "support": {
       "url": "https://help-tickets.vtex.com/en/support?app=vtex.ship-station"
