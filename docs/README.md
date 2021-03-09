@@ -18,12 +18,16 @@ The ShipStation app sends orders placed in VTEX to ShipStation.  When the orders
 2. In the upper right hand corner, click the gear icon.
 3. In the left hand menu, click Account, then API Settings
 4. Generate API Keys.  Record the Key and Secret.
+![image](https://user-images.githubusercontent.com/47258865/110505541-3d983100-80cc-11eb-9b5c-990bf254bad3.png)
 
 ### Step 2 - Create a store
 
 1. In the left-hand column, choose ‘Selling Channels’ and then ‘Store Setup’
+![image](https://user-images.githubusercontent.com/47258865/110505168-e4300200-80cb-11eb-815e-2f78cdef29e6.png)
 2. Click ‘ Connect a Store or Marketplace’ and search for ‘Shipstation’
+![image](https://user-images.githubusercontent.com/47258865/110505238-f742d200-80cb-11eb-85dd-8ffccfd4d01a.png)
 3. Name the store and click Connect.
+![image](https://user-images.githubusercontent.com/47258865/110505261-fca01c80-80cb-11eb-9752-1df0ab4e6453.png)
 
 ### Step 3 - Install the ShipStation app
 
