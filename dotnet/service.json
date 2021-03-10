@@ -88,6 +88,10 @@
       "path": "/ship-station/verify-orders/:days",
       "public": true
     },
+    "listFulfillments": {
+      "path": "/ship-station/list-fulfillments/:days",
+      "public": true
+    },
     "printHeaders": {
       "path": "/ship-station/print-headers",
       "public": true

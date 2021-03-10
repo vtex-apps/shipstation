@@ -524,10 +524,17 @@ namespace ShipStation.Services
 
                             //orderItem.WarehouseLocation = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
                             orderItem.WarehouseLocation = deliveryIds.Select(w => w.DockId).FirstOrDefault();
-                            long advancedOptionsWarehouseId = listWarehouses.Where(w => w.WarehouseName.Equals(orderItem.WarehouseLocation)).Select(w => w.WarehouseId).FirstOrDefault();
-                            if (!advancedOptionsWarehouseIds.Contains(advancedOptionsWarehouseId))
+                            try
                             {
-                                advancedOptionsWarehouseIds.Add(advancedOptionsWarehouseId);
+                                long advancedOptionsWarehouseId = listWarehouses.Where(w => w.WarehouseName.Equals(orderItem.WarehouseLocation)).Select(w => w.WarehouseId).FirstOrDefault();
+                                if (!advancedOptionsWarehouseIds.Contains(advancedOptionsWarehouseId))
+                                {
+                                    advancedOptionsWarehouseIds.Add(advancedOptionsWarehouseId);
+                                }
+                            }
+                            catch(Exception ex)
+                            {
+                                _context.Vtex.Logger.Error("CreateUpdateOrder", null, "Error setting warehouse id", ex);
                             }
 
                             Console.WriteLine($"--------------------------------->     Setting Warehouse Id to '{orderItem.WarehouseLocation}'");

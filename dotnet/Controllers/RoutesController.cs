@@ -226,6 +226,15 @@
             return Json(responseMsg);
         }
 
+        public async Task<IActionResult> ListFulfillments()
+        {
+            Response.Headers.Add("Cache-Control", "private");
+            var response = await this._shipStationAPIService.ListFulFillments(string.Empty);
+            //Console.WriteLine($"response.Total = {response.Total}");
+            string responseMsg = JsonConvert.SerializeObject(response);
+            return Json(responseMsg);
+        }
+
         public async Task<IActionResult> ListOrders()
         {
             Response.Headers.Add("Cache-Control", "private");
