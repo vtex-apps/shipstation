@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Handle erros if warehouse data is missing
+
 ## [0.0.32] - 2021-02-01
 
 ### Fixed
