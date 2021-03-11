@@ -318,17 +318,9 @@ namespace ShipStation.Services
                 //createUpdateOrderRequest.TaxAmount = ToDollar(vtexOrder.Totals.Where(t => t.Id == "Tax").Select(d => d.Value).FirstOrDefault());
                 createUpdateOrderRequest.BillTo = new ToAddress
                 {
-                    City = vtexOrder.ShippingData.Address.City,
-                    Company = null,
-                    Country = vtexOrder.ShippingData.Address.Country.Substring(0, 2),
-                    Name = vtexOrder.ShippingData.Address.ReceiverName,
-                    Phone = vtexOrder.ClientProfileData.Phone,
-                    PostalCode = vtexOrder.ShippingData.Address.PostalCode,
-                    Residential = null,
-                    State = vtexOrder.ShippingData.Address.State,
-                    Street1 = vtexOrder.ShippingData.Address.Street,
-                    //Street2 = vtexOrder.ShippingData.Address.Number.ToString(),
-                    //Street3 = vtexOrder.ShippingData.Address.Neighborhood
+                    Company = vtexOrder.ClientProfileData.CorporateName,
+                    Name = $"{vtexOrder.ClientProfileData.FirstName} {vtexOrder.ClientProfileData.LastName}",
+                    Phone = vtexOrder.ClientProfileData.Phone
                 };
 
                 createUpdateOrderRequest.CarrierCode = null;

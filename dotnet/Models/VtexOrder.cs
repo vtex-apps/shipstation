@@ -227,10 +227,10 @@ namespace ShipStation.Models
         public string Phone { get; set; }
 
         [JsonProperty("corporateName")]
-        public object CorporateName { get; set; }
+        public string CorporateName { get; set; }
 
         [JsonProperty("tradeName")]
-        public object TradeName { get; set; }
+        public string TradeName { get; set; }
 
         [JsonProperty("corporateDocument")]
         public object CorporateDocument { get; set; }
