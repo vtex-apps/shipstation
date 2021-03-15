@@ -14,7 +14,8 @@ namespace ShipStation.Models
         public string WeightUnit { get; set; }
         public bool SplitShipmentByLocation { get; set; }
         public bool SendPickupInStore { get; set; }
-        public bool MarketplaceOnly { get; set; }
+        public bool MarketplaceOnly { get { return this.OrderSource.Equals("marketplace"); } }
+        public string OrderSource { get; set; }
         public bool SendItemDetails { get; set; }
         public bool UpdateOrderStatus { get; set; }
         public bool UseSequenceAsOrderNumber { get; set; }
