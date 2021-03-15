@@ -317,8 +317,8 @@ namespace ShipStation.Services
                             if (vtexOrder != null)
                             {
                                 MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
-                                if (!merchantSettings.OrderSource.Equals("marketplace") ||
-                                    (merchantSettings.OrderSource.Equals("marketplace") && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
+                                if (!merchantSettings.MarketplaceOnly ||
+                                    (merchantSettings.MarketplaceOnly && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
                                 {
                                     success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
                                     if (success && merchantSettings.UpdateOrderStatus)
@@ -507,8 +507,8 @@ namespace ShipStation.Services
                     }
                     else
                     {
-                        if ((!merchantSettings.OrderSource.Equals("marketplace") && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Fulfillment)) ||
-                            (merchantSettings.OrderSource.Equals("marketplace") && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
+                        if (!merchantSettings.MarketplaceOnly ||
+                            (merchantSettings.MarketplaceOnly && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
                         {
                             success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
                             Console.WriteLine($"CreateUpdateOrder returned {success} for order '{orderId}'");
