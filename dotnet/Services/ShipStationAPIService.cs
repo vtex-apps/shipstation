@@ -471,7 +471,14 @@ namespace ShipStation.Services
                             {
                                 if (priceTag.IsPercentual ?? false)
                                 {
-                                    itemTax += (long)Math.Round(item.SellingPrice * priceTag.RawValue, MidpointRounding.AwayFromZero);
+                                    if (name.Contains("tax@shipping"))
+                                    {
+                                        _context.Vtex.Logger.Debug("CreateUpdateOrder", "Tax", $"Ignoring Shipping Tax {sla.Price} * {priceTag.RawValue} = {Math.Round(sla.Price * priceTag.RawValue, MidpointRounding.AwayFromZero)}");
+                                    }
+                                    else
+                                    {
+                                        itemTax += (long)Math.Round(item.SellingPrice * priceTag.RawValue, MidpointRounding.AwayFromZero);
+                                    }
                                 }
                                 else
                                 {
