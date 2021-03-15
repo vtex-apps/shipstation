@@ -26,7 +26,6 @@ const initialState = {
   brandedReturnsUrl: '',
   splitShipmentByLocation: false,
   sendPickupInStore: false,
-  marketplaceOnly: false,
   sendItemDetails: false,
   updateOrderStatus: false,
   useRefIdAsSku: false,
@@ -34,12 +33,18 @@ const initialState = {
   addDockToOptions: false,
   showPaymentMethod: false,
   weightUnit: 'pounds',
+  orderSource: 'fulfillment'
 }
 
 const weightUnitOptions = [
   { value: 'pounds', label: 'Pounds' },
   { value: 'ounces', label: 'Ounces' },
   { value: 'grams', label: 'Grams' },
+]
+
+const orderSourceOptions = [
+    { value: 'fulfillment', label: 'Fulfillment' },
+    { value: 'marketplace', label: 'Marketplace' },
 ]
 
 const ShipStationAdmin: FC = () => {
@@ -65,7 +70,7 @@ const ShipStationAdmin: FC = () => {
       brandedReturnsUrl,
       splitShipmentByLocation,
       sendPickupInStore,
-      marketplaceOnly,
+      orderSource,
       sendItemDetails,
       updateOrderStatus,
       weightUnit,
@@ -75,7 +80,7 @@ const ShipStationAdmin: FC = () => {
       showPaymentMethod
     } = JSON.parse(data.appSettings?.message || '{}')
 
-      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, marketplaceOnly, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails, addDockToOptions, showPaymentMethod })
+      setSettingsState({ apiKey, apiSecret, storeName, brandedReturnsUrl, splitShipmentByLocation, sendPickupInStore, orderSource, sendItemDetails, updateOrderStatus, weightUnit, useRefIdAsSku, sendSkuDetails, addDockToOptions, showPaymentMethod })
   }, [data])
 
   // handler to save new settings by executing the 'saveSettings' mutation
@@ -191,15 +196,13 @@ const ShipStationAdmin: FC = () => {
               />
           </div>
           <div className="mt5">
-              <Toggle
-                  label="Only send Marketplace Orders"
+              <Dropdown
+                  label="Order Source"
                   size="large"
-                  checked={settingsState.marketplaceOnly}
-                  onChange={() =>
-                      setSettingsState({
-                          ...settingsState,
-                          marketplaceOnly: !settingsState.marketplaceOnly,
-                      })
+                  options={orderSourceOptions}
+                  value={settingsState.orderSource}
+                  onChange={(_: any, v: string) =>
+                      setSettingsState({ ...settingsState, orderSource: v })
                   }
               />
           </div>
