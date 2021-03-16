@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- order domain filter
+
 ## [0.0.38] - 2021-03-16
 
 ### Fixed
