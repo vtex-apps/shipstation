@@ -322,7 +322,7 @@ namespace ShipStation.Services
                                     merchantSettings.OrderSource = "fulfillment";
                                 }
 
-                                if ((!merchantSettings.OrderSource.Equals("marketplace") && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Fulfillment)) ||
+                                if (!merchantSettings.OrderSource.Equals("marketplace") ||
                                     (merchantSettings.OrderSource.Equals("marketplace") && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
                                 {
                                     success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
@@ -438,54 +438,54 @@ namespace ShipStation.Services
                     }
                     break;
                 case ShipStationConstants.Domain.Marketplace:
-                    switch (allStatesNotification.CurrentState)
-                    {
-                        case ShipStationConstants.VtexOrderStatus.Handling:
-                        case ShipStationConstants.VtexOrderStatus.StartHanding:
-                            //string createDateStart = DateTime.Now.AddHours(-12).ToString();
-                            //ListOrdersResponse listOrdersResponse = await this._shipStationAPIService.ListOrders($"pageSize=500&createDateStart={createDateStart}");
-                            ListOrdersResponse listOrdersResponse = await this._shipStationAPIService.ListOrders($"orderNumber={allStatesNotification.OrderId}");
-                            var shipStationOrders = listOrdersResponse.Orders.Select(o => o.OrderNumber);
-                            if (!shipStationOrders.Contains(allStatesNotification.OrderId))
-                            {
-                                _context.Vtex.Logger.Warn("ProcessNotification", null, $"Received {allStatesNotification.CurrentState} notification for order '{allStatesNotification.OrderId}'. Order was not found in ShipStation.");
-                                success = await this.SendOrderToShipStation(allStatesNotification.OrderId);
-                            }
+                    //switch (allStatesNotification.CurrentState)
+                    //{
+                    //    case ShipStationConstants.VtexOrderStatus.Handling:
+                    //    case ShipStationConstants.VtexOrderStatus.StartHanding:
+                    //        //string createDateStart = DateTime.Now.AddHours(-12).ToString();
+                    //        //ListOrdersResponse listOrdersResponse = await this._shipStationAPIService.ListOrders($"pageSize=500&createDateStart={createDateStart}");
+                    //        ListOrdersResponse listOrdersResponse = await this._shipStationAPIService.ListOrders($"orderNumber={allStatesNotification.OrderId}");
+                    //        var shipStationOrders = listOrdersResponse.Orders.Select(o => o.OrderNumber);
+                    //        if (!shipStationOrders.Contains(allStatesNotification.OrderId))
+                    //        {
+                    //            _context.Vtex.Logger.Warn("ProcessNotification", null, $"Received {allStatesNotification.CurrentState} notification for order '{allStatesNotification.OrderId}'. Order was not found in ShipStation.");
+                    //            success = await this.SendOrderToShipStation(allStatesNotification.OrderId);
+                    //        }
 
-                            break;
-                        case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
-                            success = await this.SendOrderToShipStation(allStatesNotification.OrderId);
+                    //        break;
+                    //    case ShipStationConstants.VtexOrderStatus.ReadyForHandling:
+                    //        success = await this.SendOrderToShipStation(allStatesNotification.OrderId);
 
-                            try
-                            {
-                                // Check for any orders that were cancelled in ShipStation
-                                await CheckCancelledOrders();
-                            }
-                            catch (Exception ex)
-                            {
-                                _context.Vtex.Logger.Error("ProcessNotification", "CheckCancelledOrders", $"Error checking for Cancelled orders", ex);
-                            }
+                    //        try
+                    //        {
+                    //            // Check for any orders that were cancelled in ShipStation
+                    //            await CheckCancelledOrders();
+                    //        }
+                    //        catch (Exception ex)
+                    //        {
+                    //            _context.Vtex.Logger.Error("ProcessNotification", "CheckCancelledOrders", $"Error checking for Cancelled orders", ex);
+                    //        }
 
-                            break;
-                        //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
-                        case ShipStationConstants.VtexOrderStatus.Cancel:
-                            //case ShipStationConstants.VtexOrderStatus.Invoice:
-                            //case ShipStationConstants.VtexOrderStatus.Invoiced:
-                            //case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
-                            //case ShipStationConstants.VtexOrderStatus.OrderCreated:
-                            //case ShipStationConstants.VtexOrderStatus.PaymentPending:
-                            vtexOrder = await this.GetOrderInformation(allStatesNotification.OrderId);
-                            //if (vtexOrder != null && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace))
-                            {
-                                success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
-                            }
+                    //        break;
+                    //    //case ShipStationConstants.VtexOrderStatus.ApprovePayment:
+                    //    case ShipStationConstants.VtexOrderStatus.Cancel:
+                    //        //case ShipStationConstants.VtexOrderStatus.Invoice:
+                    //        //case ShipStationConstants.VtexOrderStatus.Invoiced:
+                    //        //case ShipStationConstants.VtexOrderStatus.OnOrderCompleted:
+                    //        //case ShipStationConstants.VtexOrderStatus.OrderCreated:
+                    //        //case ShipStationConstants.VtexOrderStatus.PaymentPending:
+                    //        vtexOrder = await this.GetOrderInformation(allStatesNotification.OrderId);
+                    //        //if (vtexOrder != null && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace))
+                    //        {
+                    //            success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
+                    //        }
 
-                            break;
-                        default:
-                            Console.WriteLine($"State {allStatesNotification.CurrentState} not implemeted.");
-                            //_context.Vtex.Logger.Info("ProcessNotification", null, $"State {hookNotification.State} not implemeted.");
-                            break;
-                    }
+                    //        break;
+                    //    default:
+                    //        Console.WriteLine($"State {allStatesNotification.CurrentState} not implemeted.");
+                    //        //_context.Vtex.Logger.Info("ProcessNotification", null, $"State {hookNotification.State} not implemeted.");
+                    //        break;
+                    //}
                     break;
                 default:
                     Console.WriteLine($"Domain {allStatesNotification.Domain} not implemeted.");
@@ -517,7 +517,7 @@ namespace ShipStation.Services
                             merchantSettings.OrderSource = "fulfillment";
                         }
 
-                        if ((!merchantSettings.OrderSource.Equals("marketplace") && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Fulfillment)) ||
+                        if (!merchantSettings.OrderSource.Equals("marketplace")  ||
                             (merchantSettings.OrderSource.Equals("marketplace") && vtexOrder.Origin != null && vtexOrder.Origin.Equals(ShipStationConstants.Domain.Marketplace)))
                         {
                             success = await this._shipStationAPIService.CreateUpdateOrder(vtexOrder);
