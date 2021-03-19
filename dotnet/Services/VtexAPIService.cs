@@ -717,7 +717,12 @@ namespace ShipStation.Services
                                 LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemIndex.ToString().Equals(shipmentItem.LineItemKey)).FirstOrDefault();
                                 if (logisticsInfo != null)
                                 {
-                                    Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
+                                    Sla sla = new Sla();
+                                    if (logisticsInfo.Slas != null)
+                                    {
+                                        sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
+                                    }
+
                                     if (sla != null)
                                     {
                                         //VtexOrderItem item = vtexOrder.Items.Where(i => i.Id.Equals(shipmentItem.LineItemKey)).FirstOrDefault();

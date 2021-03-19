@@ -456,7 +456,12 @@ namespace ShipStation.Services
 
                     Console.WriteLine($"    ----------  Marketplace '{marketplaceName}' --------------  ");
                     LogisticsInfo logisticsInfo = vtexOrder.ShippingData.LogisticsInfo.Where(l => l.ItemIndex.Equals(itemIndex)).FirstOrDefault();
-                    Sla sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
+                    Sla sla = new Sla();
+                    if (logisticsInfo != null && logisticsInfo.Slas != null)
+                    {
+                        sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
+                    }
+
                     if (!merchantSettings.SendPickupInStore && (sla.PickupStoreInfo.IsPickupStore ?? false))
                     {
                         Console.WriteLine($"{item.Name} is Pickup.  Skipping.");
