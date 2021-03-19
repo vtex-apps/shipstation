@@ -247,7 +247,7 @@ namespace ShipStation.Models
         /// no warehouse is attached to these orders and will result in a null value being returned.
         /// </summary>
         [JsonProperty("warehouseId")]
-        public long WarehouseId { get; set; }
+        public long? WarehouseId { get; set; }
 
         /// <summary>
         /// Specifies whether the order is non-machinable.
