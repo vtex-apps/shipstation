@@ -462,7 +462,7 @@ namespace ShipStation.Services
                         sla = logisticsInfo.Slas.Where(s => s.Id.Equals(logisticsInfo.SelectedSla)).FirstOrDefault();
                     }
 
-                    if (!merchantSettings.SendPickupInStore && (sla.PickupStoreInfo.IsPickupStore ?? false))
+                    if (!merchantSettings.SendPickupInStore && (sla != null) && (sla.PickupStoreInfo != null) && (sla.PickupStoreInfo.IsPickupStore ?? false))
                     {
                         Console.WriteLine($"{item.Name} is Pickup.  Skipping.");
                     }

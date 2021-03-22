@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix for null Sla
+
 ## [0.0.40] - 2021-03-19
 
 ### Fixed
