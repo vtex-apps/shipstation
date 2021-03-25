@@ -310,7 +310,7 @@ namespace ShipStation.Services
                 ShipStationOrder createUpdateOrderRequest = new ShipStationOrder();
                 createUpdateOrderRequest.AdvancedOptions = new AdvancedOptions
                 {
-                    //WarehouseId = 
+                    WarehouseId = null
                 };
 
                 //createUpdateOrderRequest.AmountPaid = ToDollar(vtexOrder.Totals.Sum(t => t.Value));
@@ -419,7 +419,7 @@ namespace ShipStation.Services
                     City = vtexOrder.ShippingData.Address.City,
                     Company = null,
                     Country = vtexOrder.ShippingData.Address.Country.Substring(0, 2),
-                    Name = vtexOrder.ShippingData.Address.ReceiverName,
+                    Name = vtexOrder.ShippingData.Address.ReceiverName ?? string.Empty,
                     Phone = vtexOrder.ClientProfileData.Phone,
                     PostalCode = vtexOrder.ShippingData.Address.PostalCode,
                     Residential = vtexOrder.ShippingData.Address.AddressType == "residential",
@@ -478,7 +478,8 @@ namespace ShipStation.Services
                                 {
                                     if (name.Contains("tax@shipping"))
                                     {
-                                        _context.Vtex.Logger.Debug("CreateUpdateOrder", "Tax", $"Ignoring Shipping Tax {sla.Price} * {priceTag.RawValue} = {Math.Round(sla.Price * priceTag.RawValue, MidpointRounding.AwayFromZero)}");
+                                        shippingTax = (long)Math.Round(sla.Price * priceTag.RawValue, MidpointRounding.AwayFromZero);
+                                        _context.Vtex.Logger.Debug("CreateUpdateOrder", "Tax", $"Shipping Tax {sla.Price} * {priceTag.RawValue} = {Math.Round(sla.Price * priceTag.RawValue, MidpointRounding.AwayFromZero)}");
                                     }
                                     else
                                     {
@@ -780,8 +781,11 @@ namespace ShipStation.Services
                     }
                     else if(advancedOptionsWarehouseIds.Count == 1)
                     {
-                        shipStationOrderTemp.AdvancedOptions.WarehouseId = advancedOptionsWarehouseIds[0];
-                        Console.WriteLine($"    === advancedOptionsWarehouseId = {advancedOptionsWarehouseIds[0]}   === ");
+                        if (advancedOptionsWarehouseIds[0] > 0)
+                        {
+                            shipStationOrderTemp.AdvancedOptions.WarehouseId = advancedOptionsWarehouseIds[0];
+                            Console.WriteLine($"    === advancedOptionsWarehouseId = {advancedOptionsWarehouseIds[0]}   === ");
+                        }
                     }
 
                     //shipStationOrderTemp.AdvancedOptions.WarehouseId = warehouseId;
