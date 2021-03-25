@@ -711,6 +711,7 @@ namespace ShipStation.Services
                             long itemPrice = ToCents(shipmentItem.UnitPrice) * shipmentItem.Quantity;
                             long itemTax = ToCents(shipmentItem.TaxAmount ?? 0d);
                             long shippingCost = ToCents(shipmentItem.ShippingAmount ?? 0d);
+                            long shippingTax = 0L;
 
                             if (shipmentItem.LineItemKey != shipmentItem.Sku)
                             {
@@ -737,7 +738,8 @@ namespace ShipStation.Services
                                                 {
                                                     if (name.Contains("tax@shipping"))
                                                     {
-                                                        _context.Vtex.Logger.Debug("ProcessShipNotification","Tax",$"Ignoring Shipping Tax {sla.Price} * {priceTag.RawValue} = {Math.Round(sla.Price * priceTag.RawValue, MidpointRounding.AwayFromZero)}");
+                                                        shippingTax = (long)Math.Round(sla.Price * priceTag.RawValue, MidpointRounding.AwayFromZero);
+                                                        _context.Vtex.Logger.Debug("ProcessShipNotification","Tax",$"Shipping Tax {sla.Price} * {priceTag.RawValue} = {Math.Round(sla.Price * priceTag.RawValue, MidpointRounding.AwayFromZero)}");
                                                     }
                                                     else
                                                     {
@@ -752,7 +754,7 @@ namespace ShipStation.Services
                                         }
 
                                         itemPrice = item.SellingPrice * item.Quantity;
-                                        shippingCost = sla.Price;
+                                        shippingCost = sla.Price + shippingTax;
                                     }
                                     else
                                     {
@@ -782,17 +784,17 @@ namespace ShipStation.Services
 
                         sb.AppendLine($"InvoiceValue = {request.InvoiceValue}");
                         // Don't charge more than order total
-                        //request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
-                        //if(request.InvoiceValue < orderTotal)
-                        //{
-                        //    Console.WriteLine($"request.InvoiceValue < orderTotal : {request.InvoiceValue} < {orderTotal}");
-                        //    if (shippedItemQnty + itemQntyThisShipment == orderItemQnty)
-                        //    {
-                        //        request.InvoiceValue = orderTotal - totalInvoice;
-                        //        sb.AppendLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
-                        //        Console.WriteLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
-                        //    }
-                        //}
+                        request.InvoiceValue = Math.Min(request.InvoiceValue, orderTotal);
+                        if (request.InvoiceValue < orderTotal)
+                        {
+                            Console.WriteLine($"request.InvoiceValue < orderTotal : {request.InvoiceValue} < {orderTotal}");
+                            if (shippedItemQnty + itemQntyThisShipment == orderItemQnty)
+                            {
+                                request.InvoiceValue = orderTotal - totalInvoice;
+                                sb.AppendLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
+                                Console.WriteLine($"Order Complete: InvoiceValue = {request.InvoiceValue}");
+                            }
+                        }
 
                         OrderInvoiceNotificationResponse response = await this.OrderInvoiceNotification(orderId, request);
                         success = response != null;

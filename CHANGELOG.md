@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix for shipping tax
+
 ## [0.0.41] - 2021-03-22
 
 ### Fixed
