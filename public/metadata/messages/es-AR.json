@@ -1,0 +1,14 @@
+
+{
+    "name": "ShipStation",
+    "headline": "Una integración con ShipStation",
+    "overview": "Envía nuevos pedidos a Shipstation\\n Procesa los envíos realizados en Shipstation",
+    "features": [
+        "Envía nuevos pedidos a Shipstation",
+        "Procesa los envíos realizados en Shipstation"
+    ],
+    "websiteURL": "https://vtex.com/",
+    "support": {
+        "url": "https://help-tickets.vtex.com/en/support?app=vtex.shipstation"
+    }
+}
