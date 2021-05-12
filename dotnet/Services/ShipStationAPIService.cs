@@ -419,7 +419,7 @@ namespace ShipStation.Services
                     City = vtexOrder.ShippingData.Address.City,
                     Company = null,
                     Country = vtexOrder.ShippingData.Address.Country.Substring(0, 2),
-                    Name = vtexOrder.ShippingData.Address.ReceiverName ?? string.Empty,
+                    Name = vtexOrder.ShippingData.Address.ReceiverName ?? $"{vtexOrder.ClientProfileData.FirstName} {vtexOrder.ClientProfileData.LastName}",
                     Phone = vtexOrder.ClientProfileData.Phone,
                     PostalCode = vtexOrder.ShippingData.Address.PostalCode,
                     Residential = vtexOrder.ShippingData.Address.AddressType == "residential",

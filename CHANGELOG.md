@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- If receiver name is null, default to client name
+
 ## [0.2.0] - 2021-04-13
 
 ## [0.1.0] - 2021-04-12
