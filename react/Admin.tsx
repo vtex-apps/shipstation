@@ -15,8 +15,6 @@ import Settings from './graphql/AppSettings.graphql'
 import SaveSettings from './graphql/SaveAppSettings.graphql'
 
 const SETUP_HOOKS_URL = '/ship-station/setup-hooks'
-// const SYNCH_ORDER_URL = '/ship-station/synch-vtex-order/'
-// const LIST_HOOKS_URL = '/ship-station/list-active-webhooks'
 const CREATE_WAREHOUSES_URL = '/ship-station/create-warehouses'
 
 const initialState = {
@@ -297,7 +295,7 @@ const ShipStationAdmin: FC = () => {
       </div>
       <div className="mt5">
         <Button
-          variation="primary"
+          variation="secondary"
           collapseLeft
           onClick={() => {
             handleSetupHooks()
@@ -309,7 +307,7 @@ const ShipStationAdmin: FC = () => {
       </div>
       <div className="mt5">
         <Button
-          variation="primary"
+          variation="secondary"
           collapseLeft
           onClick={() => {
             handleCreateWarehouses()

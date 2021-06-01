@@ -77,8 +77,6 @@
                 request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
             }
 
-            //request.Headers.Add("Cache-Control", "no-cache");
-
             var client = _clientFactory.CreateClient();
             var response = await client.SendAsync(request);
             Console.WriteLine($"GetShipStationStores {response.StatusCode}:{response.ReasonPhrase}");
