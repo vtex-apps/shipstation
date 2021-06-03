@@ -286,15 +286,25 @@ namespace ShipStation.Services
             if (vtexOrder != null && !string.IsNullOrEmpty(vtexOrder.Status))
             {
                 List<long> advancedOptionsWarehouseIds = new List<long>();
+                List<string> dockIds = new List<string>();
                 string url = $"https://{ShipStationConstants.API.HOST}/{ShipStationConstants.API.ORDERS}/{ShipStationConstants.API.CREATE_ORDER}";
                 MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
                 List<ListWarehousesResponse> listWarehouses = null;
+                ListAllWarehousesResponse[] listAllWarehouses = null;
                 ListVtexDocksResponse[] listVtexDocks = null;
+                Holiday[] holidays = await ListHolidays();
                 if (!_memoryCache.TryGetValue("ListWarehouses", out listWarehouses))
                 {
                     listWarehouses = await this.ListWarehouses();
                     var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(1));
                     _memoryCache.Set("ListWarehouses", listWarehouses, cacheEntryOptions);
+                }
+
+                if (!_memoryCache.TryGetValue("ListAllWarehouses", out listAllWarehouses))
+                {
+                    listAllWarehouses = await this.ListAllWarehouses();
+                    var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(1));
+                    _memoryCache.Set("ListAllWarehouses", listAllWarehouses, cacheEntryOptions);
                 }
 
                 if (merchantSettings.AddDockToOptions)
@@ -528,7 +538,8 @@ namespace ShipStation.Services
                             //}
 
                             //orderItem.WarehouseLocation = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
-                            orderItem.WarehouseLocation = deliveryIds.Select(w => w.DockId).FirstOrDefault();
+                            //orderItem.WarehouseLocation = deliveryIds.Select(w => w.DockId).FirstOrDefault();
+                            dockIds.Add(deliveryIds.Select(w => w.DockId).FirstOrDefault());
                             try
                             {
                                 long advancedOptionsWarehouseId = listWarehouses.Where(w => w.WarehouseName.Equals(orderItem.WarehouseLocation)).Select(w => w.WarehouseId).FirstOrDefault();
@@ -772,8 +783,11 @@ namespace ShipStation.Services
                         shipStationOrderTemp.ShippingAmount = splitItemsTotal[warehouseId].ShippingAmount;
                         shipStationOrderTemp.TaxAmount = splitItemsTotal[warehouseId].TaxAmount;
 
+                        var warehouseDocks = listAllWarehouses.SelectMany(w => w.WarehouseDocks);
+                        string warehouseProcessingTime = warehouseDocks.Where(d => d.DockId.Equals(warehouseId)).Select(d => d.Time).FirstOrDefault();
+                        shipStationOrderTemp.ShipByDate = await GetShipDate(holidays, warehouseProcessingTime);
+
                         long shipStationWarehouseId = listWarehouses.Where(w => w.WarehouseName.Equals(warehouseId)).Select(w => w.WarehouseId).FirstOrDefault();
-                        Console.WriteLine($"    === shipStationWarehouseId = {shipStationWarehouseId}   === ");
                         if (shipStationWarehouseId > 0)
                         {
                             shipStationOrderTemp.AdvancedOptions.WarehouseId = shipStationWarehouseId;
@@ -781,10 +795,13 @@ namespace ShipStation.Services
                     }
                     else if(advancedOptionsWarehouseIds.Count == 1)
                     {
+                        var warehouseDocks = listAllWarehouses.SelectMany(w => w.WarehouseDocks);
+                        string warehouseProcessingTime = warehouseDocks.Where(d => d.DockId.Equals(dockIds[0])).Select(d => d.Time).FirstOrDefault();
+                        shipStationOrderTemp.ShipByDate = await GetShipDate(holidays, warehouseProcessingTime);
+
                         if (advancedOptionsWarehouseIds[0] > 0)
                         {
                             shipStationOrderTemp.AdvancedOptions.WarehouseId = advancedOptionsWarehouseIds[0];
-                            Console.WriteLine($"    === advancedOptionsWarehouseId = {advancedOptionsWarehouseIds[0]}   === ");
                         }
                     }
 
@@ -794,10 +811,6 @@ namespace ShipStation.Services
                     {
                         responseWrapper = await this.SendRequest(url, shipStationOrderTemp);
                         _context.Vtex.Logger.Info("CreateUpdateOrder", null, $"OrderKey={vtexOrder.OrderFormId} OrderNumber={vtexOrder.Sequence} '{vtexOrder.Status}'='{shipStationOrderTemp.OrderStatus}'");
-                        Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}] {responseWrapper.ResponseText}");
-                        //Console.WriteLine($"CreateUpdateOrder '{responseWrapper.Message}' [{responseWrapper.IsSuccess}]");
-                        Console.WriteLine($"CreateUpdateOrder [{responseWrapper.IsSuccess}]");
-
                         _context.Vtex.Logger.Info("CreateUpdateOrder", shipStationOrderTemp.OrderNumber, JsonConvert.SerializeObject(shipStationOrderTemp));
                     }
                 }
@@ -1003,6 +1016,40 @@ namespace ShipStation.Services
             return response;
         }
 
+        public async Task<ListAllWarehousesResponse[]> ListAllWarehouses()
+        {
+            ListAllWarehousesResponse[] listAllWarehousesResponse = null;
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/logistics/pvt/configuration/warehouses")
+            };
+
+            request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            //MerchantSettings merchantSettings = await _shipStationRepository.GetMerchantSettings();
+            //request.Headers.Add(ShipStationConstants.APP_KEY, merchantSettings.AppKey);
+            //request.Headers.Add(ShipStationConstants.APP_TOKEN, merchantSettings.AppToken);
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"ListAllWarehouses [{response.StatusCode}] {responseContent}");
+            if (response.IsSuccessStatusCode)
+            {
+                listAllWarehousesResponse = JsonConvert.DeserializeObject<ListAllWarehousesResponse[]>(responseContent);
+            }
+
+            return listAllWarehousesResponse;
+        }
+
         public async Task<List<ListStoresResponse>> ListStores()
         {
             List<ListStoresResponse> response = null;
@@ -1126,6 +1173,140 @@ namespace ShipStation.Services
             }
 
             return ListVtexDocksResponse;
+        }
+
+        public async Task<Holiday[]> ListHolidays()
+        {
+            Holiday[] holidays = null;
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"http://{this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.VTEX_ACCOUNT_HEADER_NAME]}.vtexcommercestable.com.br/api/logistics/pvt/configuration/holidays")
+            };
+
+            request.Headers.Add(ShipStationConstants.USE_HTTPS_HEADER_NAME, "true");
+            string authToken = this._httpContextAccessor.HttpContext.Request.Headers[ShipStationConstants.HEADER_VTEX_CREDENTIAL];
+            if (authToken != null)
+            {
+                request.Headers.Add(ShipStationConstants.AUTHORIZATION_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.VTEX_ID_HEADER_NAME, authToken);
+                request.Headers.Add(ShipStationConstants.PROXY_AUTHORIZATION_HEADER_NAME, authToken);
+            }
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"ListHolidays [{response.StatusCode}] {responseContent}");
+            if (response.IsSuccessStatusCode)
+            {
+                holidays = JsonConvert.DeserializeObject<Holiday[]>(responseContent);
+            }
+
+            return holidays;
+        }
+
+        public async Task<int> ParseProcessingDays(string processingTime)
+        {
+            int days = 0;
+            if(!string.IsNullOrEmpty(processingTime))
+            {
+                try
+                {
+                    var parsedString = processingTime.Split('.');
+                    days = int.Parse(parsedString[0]);
+                }
+                catch(Exception ex)
+                {
+                    _context.Vtex.Logger.Error("ParseProcessingDays", null, $"Error parsing '{processingTime}' ", ex);
+                }
+            }
+
+            return days;
+        }
+
+        public async Task<string> AddHolidays(Holiday[] holidays, int processingDays)
+        {
+            DateTime today = DateTime.Now;
+            DateTime shipDate = today.AddDays(processingDays);
+            try
+            {
+                foreach(Holiday holiday in holidays)
+                {
+                    TimeSpan ts = new TimeSpan();
+                    DateTime startDate = DateTime.Parse(holiday.StartDate);
+                    DateTime endDate = DateTime.Parse(holiday.EndDate);
+                    if(startDate >= today && startDate <= shipDate)
+                    {
+                        ts = endDate - startDate;
+                    }
+                    else if(endDate >= today && endDate <= shipDate)
+                    {
+                        ts = endDate - today;
+                    }
+                    else if(startDate <= today && endDate >= shipDate)
+                    {
+                        ts = endDate - today;
+                    }
+
+                    shipDate.AddDays(ts.TotalDays);
+                    Console.WriteLine($"{holiday.Name} From {startDate} to {endDate}\nShipping on {today.AddDays(processingDays)} + {ts.TotalDays} = {shipDate}");
+                    _context.Vtex.Logger.Debug("AddHolidays", null, $"{holiday.Name} From {startDate} to {endDate}\nShipping on {today.AddDays(processingDays)} + {ts.TotalDays} = {shipDate}");
+                }
+            }
+            catch(Exception ex)
+            {
+                _context.Vtex.Logger.Error("AddHolidays", null, "Error adding holidays ", ex);
+            }
+
+            return shipDate.ToString();
+        }
+
+        public async Task<string> GetShipDate(Holiday[] holidays, string processingTime)
+        {
+            string shipByDate = null;
+            if(!string.IsNullOrEmpty(processingTime))
+            {
+                try
+                {
+                    var parsedString = processingTime.Split('.');
+                    if(parsedString.Length == 2)
+                    {
+                        int processingDays = int.Parse(parsedString[0]);
+                        DateTime today = DateTime.Now;
+                        DateTime shipDate = today.AddDays(processingDays);
+                        foreach(Holiday holiday in holidays)
+                        {
+                            TimeSpan ts = new TimeSpan();
+                            DateTime startDate = DateTime.Parse(holiday.StartDate);
+                            DateTime endDate = DateTime.Parse(holiday.EndDate);
+                            if(startDate >= today && startDate <= shipDate)
+                            {
+                                ts = endDate - startDate;
+                            }
+                            else if(endDate >= today && endDate <= shipDate)
+                            {
+                                ts = endDate - today;
+                            }
+                            else if(startDate <= today && endDate >= shipDate)
+                            {
+                                ts = endDate - today;
+                            }
+
+                            shipDate.AddDays(ts.TotalDays);
+                            Console.WriteLine($"{holiday.Name} From {startDate} to {endDate}\nShipping on {today.AddDays(processingDays)} + {ts.TotalDays} = {shipDate}");
+                            _context.Vtex.Logger.Debug("AddHolidays", null, $"{holiday.Name} From {startDate} to {endDate}\nShipping on {today.AddDays(processingDays)} + {ts.TotalDays} = {shipDate}");
+                        }
+
+                        shipByDate = shipDate.ToString();
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _context.Vtex.Logger.Error("GetShipDate", null, $"Error calculating ship by date '{processingTime}' {JsonConvert.SerializeObject(holidays)} ", ex);
+                }
+            }
+
+            return shipByDate;
         }
     }
 }

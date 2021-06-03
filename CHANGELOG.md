@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - If receiver name is null, default to client name
+- Calculate ship by date
 
 ## [0.2.0] - 2021-04-13
 
