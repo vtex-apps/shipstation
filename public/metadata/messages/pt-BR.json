@@ -2,7 +2,7 @@
 {
     "name": "ShipStation",
     "headline": "Uma integração com o ShipStation",
-    "overview": "Envia novos pedidos para o Shipstation\\n Processa envios feitos no Shipstation",
+    "overview": "ShipStation é uma solução de envio multicanal e multitransportadora desenvolvida para agilizar o processo de envio. O ShipStation proporciona uma experiência única e customizada para os clientes, oferecendo guias de remessa, e-mails e modelos de páginas de rastreamento personalizáveis. Conecte este aplicativo à sua loja VTEX e simplifique todas as etapas do processo de envio.",
     "features": [
       "Envia novos pedidos para o Shipstation",
       "Processa envios feitos no Shipstation"
