@@ -1,11 +1,11 @@
 
 {
   "name": "ShipStation",
-  "headline": "An integration with ShipStation",
+  "headline": "Integrate your store with a complete, multi-carrier and multi-channel shipping solution",
   "overview": "ShipStation is a multi-carrier, multi-channel shipping solution designed to expedite the shipping process. ShipStation provides a unique, branded experience for customers by offering customizable packing slips, emails, and tracking page templates. Connect this app with your VTEX store and you'll be able to simplify the shipping process every step of the way.",
   "features": [
-    "Sends new orders to Shipstation",
-    "Processes Shipments made in Shipstation"
+    "Sends new orders to ShipStation",
+    "Processes Shipments made in ShipStation"
   ],
   "websiteURL": "https://vtex.com/",
   "support": {
