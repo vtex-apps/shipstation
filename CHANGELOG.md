@@ -6,9 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+
 ### Changed
 
 - Updated metadata to keep capitalization of ShipStation consistent
+
+## [0.3.0] - 2021-06-07
+
+### Changed
+
+- If receiver name is null, default to client name
+- Calculate ship by date
+
+## [0.2.1] - 2021-06-01
+
+## [0.2.0] - 2021-04-13
+
+## [0.1.0] - 2021-04-12
 
 ## [0.0.43] - 2021-04-12
 
