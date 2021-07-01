@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Updated metadata for submission to app store
+
+### Changed
+
 - Updated metadata to keep capitalization of ShipStation consistent
 
 ## [0.0.43] - 2021-04-12

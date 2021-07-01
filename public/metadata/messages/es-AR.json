@@ -1,7 +1,7 @@
 
 {
     "name": "ShipStation",
-    "headline": "Una integración con ShipStation",
+    "headline": "Integre su tienda con una solución de envío completa compatible con múltiples transportadoras y canales",
     "overview": "ShipStation es una solución de envío multitransporte y multicanal diseñada para acelerar el proceso de envío. ShipStation proporciona una experiencia única y hecha a medida para los clientes al ofrecer notas de entrega, emails y modelos de páginas de seguimiento personalizables. Conecte esta aplicación con su tienda VTEX y podrá simplificar el proceso de envío en cada etapa",
     "features": [
         "Envía nuevos pedidos a ShipStation",
