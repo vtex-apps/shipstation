@@ -538,7 +538,7 @@ namespace ShipStation.Services
                             //}
 
                             //orderItem.WarehouseLocation = deliveryIds.Select(w => w.WarehouseId).FirstOrDefault();
-                            //orderItem.WarehouseLocation = deliveryIds.Select(w => w.DockId).FirstOrDefault();
+                            orderItem.WarehouseLocation = deliveryIds.Select(w => w.DockId).FirstOrDefault();
                             dockIds.Add(deliveryIds.Select(w => w.DockId).FirstOrDefault());
                             try
                             {
